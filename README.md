@@ -463,6 +463,7 @@ Fields may include:
 
 - WebSocket live dashboard updates
 - MQTT support for IoT-style communication
+- Digital twin simulation engine: Build a more realistic simulation layer where battery level, generated power, cooling load, outside temperature, wind speed, and storage temperature affect each other instead of using random telemetry values.
 - More advanced anomaly detection
 - Advanced forecasting models
 - Email alert notifications
@@ -472,13 +473,14 @@ Fields may include:
 
 ---
 
-### Version 3 — Hardware and Business-Ready Features
+### Version 3 — Hardware Integration and Business-Ready Features
 
 - Real hardware integration with ESP32 or Raspberry Pi
+- Hardware-agnostic device integration: Allow any compatible device, simulator, gateway, ESP32, Raspberry Pi, or third-party monitoring system to send telemetry through REST API or MQTT using device API keys.
 - Device SDK or sample integration scripts
-- Weather API integration
-- Spoilage risk model for different storage types
-- Predictive maintenance models
+- Weather-aware risk prediction: Use external weather data such as temperature, humidity, wind speed, and solar conditions to improve battery, cooling, and storage-risk predictions.
+- Storage-specific spoilage risk model: Estimate risk based on product type such as vegetables, dairy, medicine, frozen goods, or seeds, using safe temperature and humidity ranges.
+- Predictive maintenance engine: Detect patterns that may indicate battery degradation, cooling inefficiency, sensor instability, or renewable-generation issues before major failure.
 - Role-based access control
 - Offline device buffering
 - Multi-tenant SaaS support
