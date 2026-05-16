@@ -1,10 +1,12 @@
+# https://fastapi.tiangolo.com/#create-it
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 
 
-# To run `app` object use: uvicorn app.main:app --reload
+# To run 'app' object use: uvicorn app.main:app --reload
+# Check: http://localhost:8000/
 app = FastAPI(
     title="ColdGrid AI API",        # Name shown in API docs.
     description="Backend API for ColdGrid AI cold storage monitoring platform",
