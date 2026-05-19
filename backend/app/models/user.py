@@ -23,6 +23,13 @@ class User(Base):
         autoincrement=True      #generate the ID automatically.
     )
     
+    # User's full name.
+    name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+
+    
     # User's email address.
     email: Mapped[str] = mapped_column(
         String(255),
