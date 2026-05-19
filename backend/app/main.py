@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.api.auth import router as auth_router
 
 
 # To run 'app' object use: uvicorn app.main:app --reload
@@ -24,6 +25,8 @@ app.add_middleware(
     allow_methods=["*"],          # Allow all HTTP methods such as GET, POST, PUT, DELETE.
     allow_headers=["*"],          # Allow all request headers, including Authorization headers for JWT later.
 )       # CORS middleware.
+
+app.include_router(auth_router)
 
 #Simple health checkpoint used to confrim that the backend server is running properly
 @app.get("/health")
