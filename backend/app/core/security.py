@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
+import secrets
 
 from jose import jwt
 from pwdlib import PasswordHash
@@ -60,4 +61,30 @@ def decode_access_token(token: str) -> dict[str, Any]:
         settings.jwt_secret_key,
         algorithms=[settings.jwt_algorithm],
     )
+    
+def generate_device_uid() -> str:
+    """
+    Generate a public device ID. This ID can be used later by the simulator when sending telemetry.
+    """
+    return f"dev_{secrets.token_hex(8)}"
+
+def generate_device_api_key() -> str:
+    """
+    Generate a secure raw API key for a device.
+    - This raw key is shown only once when the device is created.
+    - Only the hashed version is stored in the database.
+    """
+    return f"cg_live_{secrets.token_urlsafe(32)}"
+
+def hash_api_key(api_key: str) -> str:
+    """
+    Hash a raw device API key before storing it. The same secure password hashing system is reused.
+    """
+    return password_hash.hash(api_key)
+
+def verify_api_key(raw_api_key: str, hashed_api_key: str) -> bool:
+    """
+    Verify a raw API key against the stored hashed API key. This will be used later when the simulator sends telemetry.
+    """
+    return password_hash.verify(raw_api_key, hash_api_key)
 
