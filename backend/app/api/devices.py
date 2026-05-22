@@ -121,10 +121,12 @@ def list_devices(current_user: User = Depends(get_current_user), db: Session = D
     """
     List all devices owned by user that is logged in.
     """
-    devices = {
-        db.query(Device).filter(Device.user_id == current_user.id)
-        .order_by(Device.created_at.desc).all()
-    }
+    devices = (
+        db.query(Device)
+        .filter(Device.user_id == current_user.id)
+        .order_by(Device.created_at.desc())
+        .all()
+    )
     
     return devices
 
@@ -138,7 +140,7 @@ def get_device(device_id: int, current_user: User = Depends(get_current_user), d
     """
     return get_user_device_or_404(device_id, current_user, db)
 
-@router.get(
+@router.patch(
     "/{device_id}",
     response_model=DeviceResponse,
 )
@@ -169,7 +171,7 @@ def update_device(
     return device
 
 
-@router.get(
+@router.delete(
     "/{device_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
