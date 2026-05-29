@@ -86,5 +86,5 @@ def verify_api_key(raw_api_key: str, hashed_api_key: str) -> bool:
     """
     Verify a raw API key against the stored hashed API key. This will be used later when the simulator sends telemetry.
     """
-    return password_hash.verify(raw_api_key, hash_api_key)
+    return password_hash.verify(raw_api_key, hashed_api_key)
 
