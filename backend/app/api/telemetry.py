@@ -3,10 +3,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
 from app.core.security import verify_api_key
 from app.db.database import get_db
 from app.models.device import Device
 from app.models.telemetry import Telemetry
+from app.models.user import User
 from app.schemas.telemetry import TelemetryCreate, TelemetryResponse
 
 # Create a router for telemetry-related endpoints.
@@ -39,7 +41,32 @@ def build_telemetry_response(telemetry: Telemetry, device_uid: str,) -> Telemetr
         wind_speed=telemetry.wind_speed,
         status=telemetry.status,
     )
+
+def get_owned_device_by_uid_or_404(
+    device_uid: str,
+    current_user: User,
+    db: Session,
+) -> Device:
+    """
+    Find a device by its public device ID and confirm that it belongs to the currently logged-in user.
+    """
     
+    # Search for a device only when its public device ID matches the value in the URL and it belongs to the currently logged-in user
+    device = (
+        db.query(Device).filter(
+            Device.device_uid == device_uid,
+            Device.user_id == current_user.id).first()
+    )       
+    
+    # Return 404 both when the device does not exist and when it is not owned by the current user.
+    if device is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Device not found.",
+        )
+    
+    return device
+ 
 @router.post(
     "/telemetry",
     response_model=TelemetryResponse,
@@ -88,3 +115,61 @@ def create_telemetry_reading(
         telemetry=new_telemetry,
         device_uid=device.device_uid,
     )       # Return the saved telemetry reading using the public device ID.
+    
+@router.get(
+    "/devices/{device_uid}/telemetry",
+    response_model=list[TelemetryResponse],
+)
+def list_device_telemetry(
+    device_uid: str,
+    current_user: User = Depends(get_current_user),     # JWT-authenticated user requesting access to telemetry history.
+    db: Session = Depends(get_db),      # Database session used to fetch the device and telemetry records.
+):
+    """
+    Return all telemetry readings for one device owned by the logged-in user. The most recent telemetry readings are returned first.
+    """
+    
+    device = get_owned_device_by_uid_or_404(device_uid=device_uid, current_user=current_user, db=db)
+    telemetry_records = (
+        db.query(Telemetry)
+        .filter(Telemetry.device_id == device.id).order_by(Telemetry.timestamp.desc()).all()
+    )       # Find every telemetry record belonging to this device. Newest readings are returned first.
+    
+    # Convert database telemetry records into API responses. 
+    # This ensures the API returns the public device UID instead of the internal PostgreSQL device ID.
+    return [
+        build_telemetry_response(
+            telemetry=telemetry,
+            device_uid=device.device_uid,
+        )
+        for telemetry in telemetry_records
+    ]
+    
+@router.get(
+    "/devices/{device_uid}/telemetry/latest",
+    response_model=TelemetryResponse,
+)
+def get_latest_device_telemetry(
+    device_uid: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Return the latest telemetry reading for one device owned by the logged-in user.
+    """
+    device = get_owned_device_by_uid_or_404(device_uid=device_uid, current_user=current_user, db=db)
+    latest_telemetry = (
+        db.query(Telemetry)
+        .filter(Telemetry.device_id == device.id).order_by(Telemetry.timestamp.desc()).first()
+    )       # Get only the most recently stored telemetry reading.
+    
+    if latest_telemetry is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No telemetry records found for this device.",
+        )
+    
+    return build_telemetry_response(
+        telemetry=latest_telemetry,
+        device_uid=device.device_uid,
+    )       # Return the latest reading using the public device UID.
