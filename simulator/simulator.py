@@ -3,7 +3,13 @@ import random
 import time
 import requests
 
+from scenarios.battery_drain import BatteryDrainScenario
+from scenarios.cooling_failure import CoolingFailureScenario
+from scenarios.low_generation import LowGenerationScenario
 from scenarios.normal import NormalScenario
+from scenarios.power_spike import PowerSpikeScenario
+from scenarios.sensor_failure import SensorFailureScenario
+from scenarios.temperature_rise import TemperatureRiseScenario
 
 DEFAULT_API_URL = "http://localhost:8000/telemetry"
 
@@ -35,7 +41,15 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--scenario",
         default="normal",
-        choices=["normal"],
+        choices=[
+            "normal",
+            "battery_drain",
+            "temperature_rise",
+            "low_generation",
+            "cooling_failure",
+            "sensor_failure",
+            "power_spike",
+        ],
         help="Simulation scenario to run.",
     )       # Scenario controlling simulated device behaviour.
     
@@ -47,15 +61,27 @@ def parse_arguments() -> argparse.Namespace:
     
     return parser.parse_args()
 
-def create_scenario(scenario_name: str) -> NormalScenario:
+def create_scenario(scenario_name: str):
     """
     Create the selected scenario generator.
     """
-    if scenario_name == "normal":
-        return NormalScenario()
+    scenario_classes = {
+        "normal": NormalScenario,
+        "battery_drain": BatteryDrainScenario,
+        "temperature_rise": TemperatureRiseScenario,
+        "low_generation": LowGenerationScenario,
+        "cooling_failure": CoolingFailureScenario,
+        "sensor_failure": SensorFailureScenario,
+        "power_spike": PowerSpikeScenario,
+    }       # Map scenario names from the CLI to their Python scenario classes.
     
-    # This should not occur because argparse validates allowed choices.
-    raise ValueError(f"Unsupported scenario: {scenario_name}")
+    scenario_class = scenario_classes.get(scenario_name)
+    
+    if scenario_name is None:
+        # This should not occur because argparse validates allowed choices.
+        raise ValueError(f"Unsupported scenario: {scenario_name}")
+    
+    return scenario_class()
 
 def send_telemetry(api_url: str, api_key: str, payload: dict,) -> None:
     headers = {
@@ -72,6 +98,9 @@ def send_telemetry(api_url: str, api_key: str, payload: dict,) -> None:
                 "Telemetry saved:"
                 f" temperature={saved_reading['temperature']}°C,"
                 f" battery={saved_reading['batteryLevel']}%,"
+                f" humidity={saved_reading['humidity']}%,"
+                f" generated power={saved_reading['generatedPower']} W,"
+                f" cooling load={saved_reading['coolingLoad']} W,"
                 f" status={saved_reading['status']}"
             )
         else:
