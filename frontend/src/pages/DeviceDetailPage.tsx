@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import PageHeader from "../components/layout/PageHeader";
 import PageLayout from "../components/layout/PageLayout";
 
-function DevicesDetailPage() {
+function DeviceDetailPage() {
   // Read the deviceId value from the route:
   // /devices/:deviceId
 
@@ -24,4 +24,4 @@ function DevicesDetailPage() {
     )
 }
 
-export default DevicesDetailPage
+export default DeviceDetailPage

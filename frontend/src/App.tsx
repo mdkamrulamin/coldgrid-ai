@@ -1,19 +1,30 @@
+import { Navigate, Route, Routes } from "react-router-dom";
+import DashboardPage from "./pages/DashboardPage";
+import DeviceDetailPage from "./pages/DeviceDetailPage";
+import LoginPage from "./pages/LoginPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import RegisterPage from "./pages/RegisterPage";
+import DevciesPage from "./pages/DevicesPage";
+
 function App() {
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
-      <section className="mx-auto max-w-5xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-medium text-emerald-600">
-          ColdGrid AI Frontend
-        </p>
-        <h1 className="mt-3 text-3xl font-bold text-slate-900">
-          Dashboard setup is working
-        </h1>
-        <p className="mt-4 text-slate-600">
-          React, TypeScript, Vite, and Tailwind CSS are ready.
-        </p>
-      </section>
-    </main>
-  );
+    <Routes>
+      {/* Redirect the root URL to the dashboard */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+      {/* Public auth pages. */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+
+      {/* Main dashboard pages. */}
+      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/devices" element={<DevciesPage />} />
+      <Route path="/devices/:deviceId" element={<DeviceDetailPage />} />
+
+      {/* Catch-all route for unknown URLs. */}
+      <Route path="/*" element={<NotFoundPage />} />
+    </Routes>
+  )
 }
 
-export default App;
+export default App
