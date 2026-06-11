@@ -1,21 +1,21 @@
 import type { ReactNode } from 'react'
+import AppShell from './AppShell'
 
 type PageLayoutProps = {
     children: ReactNode
 }
 
-// Reusable layout for main dashboard-style pages.
-// Example pages:
+// Reusable layout for main dashboard-style pages like
 // - /dashboard
 // - /devices
 // - /devices/:deviceId
 function PageLayout({ children }: PageLayoutProps) {
     return (
-        <main className="min-h-screen bg-slate-50 p-8">
+        <AppShell>
             <section className="mx-auto max-w-6xl">
                 {children}
             </section>
-        </main>
+        </AppShell>
     )
 }
 
