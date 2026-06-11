@@ -19,7 +19,7 @@ export function getDevice(deviceId: number, token: string) {
 
 //Create a new device. The backend will reutnr the raw API key once.
 export function createDevice(payload: CreateDeviceRequest, token: string) {
-    return apiRequest<CreateDeviceRequest>('/devices', {
+    return apiRequest<CreateDeviceaResponse>('/devices', {
         method: 'POST',
         body: payload,
         token,
