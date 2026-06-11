@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import RegisterPage from "./pages/RegisterPage";
 import DevciesPage from "./pages/DevicesPage";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
 
 function App() {
   return (
@@ -17,9 +18,24 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
 
       {/* Main dashboard pages. */}
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/devices" element={<DevciesPage />} />
-      <Route path="/devices/:deviceId" element={<DeviceDetailPage />} />
+      <Route path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        } />
+      <Route path="/devices"
+        element={
+          <ProtectedRoute>
+            <DevciesPage />
+          </ProtectedRoute>
+        } />
+      <Route path="/devices/:deviceId"
+        element={
+          <ProtectedRoute>
+            <DeviceDetailPage />
+          </ProtectedRoute>
+        } />
 
       {/* Catch-all route for unknown URLs. */}
       <Route path="/*" element={<NotFoundPage />} />
