@@ -1,13 +1,118 @@
-import PageHeader from "../components/layout/PageHeader";
-import PageLayout from "../components/layout/PageLayout";
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
+
+import PageHeader from "../components/layout/PageHeader"
+import PageLayout from "../components/layout/PageLayout"
+import Card from "../components/ui/Card"
+import FormError from "../components/ui/FormError"
+import { useAuth } from "../lib/AuthContext"
+import { getDevices } from "../services/deviceService"
+import type { Device } from "../types/device"
 
 function DevciesPage() {
+    const { token } = useAuth()
+    const [devices, setDevices] = useState<Device[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+    useEffect(() => {
+        async function loadDevices() {
+            if (!token) {
+                return
+            }
+            try {
+                setIsLoading(true)
+                setErrorMessage(null)
+                //Fetch devices owned by the logged-in user.
+                const deviceList = await getDevices(token)
+                setDevices(deviceList)
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Unable to load devices.'
+                setErrorMessage(message)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        loadDevices()
+    }, [token])
+
     return (
         <PageLayout>
             <PageHeader
                 title="Devices"
-                description="Devices list will be shown here"
+                description="View renewable cold storage devices connected to your account."
             />
+            <div className="mt-8">
+                <FormError message={errorMessage} />
+                {isLoading && (
+                    <Card>
+                        <p className="text-sm text-slate-600">Loading devices...</p>
+                    </Card>
+                )}
+                {!isLoading && devices.length === 0 && (
+                    <Card>
+                        <h2 className="text-lg font-semibold text-slate-900">
+                            No devices yet
+                        </h2>
+                        <p className="mt-2 text-sm text-slate-600">
+                            Once you create a device, it will appear here.
+                        </p>
+                    </Card>
+                )}
+                {!isLoading && devices.length > 0 && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {devices.map((device) => (
+                            <Card key={device.id}>
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h2 className="text-lg font-semibold text-slate-900">
+                                            {device.name}
+                                        </h2>
+                                        <p className="mt-1 text-sm text-slate-600">
+                                            {device.location}
+                                        </p>
+                                    </div>
+                                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                                        {device.storageType}
+                                    </span>
+                                </div>
+                                <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <dt className="text-slate-500">Device UID</dt>
+                                        <dd className="mt-1 font-mono text-xs text-slate-900">
+                                            {device.deviceId}
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-slate-500">Battery threshold</dt>
+                                        <dd className="mt-1 font-medium text-slate-900">
+                                            {device.batteryThreshold}%
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-slate-500">Temperature range</dt>
+                                        <dd className="mt-1 font-medium text-slate-900">
+                                            {device.minTemperature}°C to {device.maxTemperature}°C
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-slate-500">Humidity range</dt>
+                                        <dd className="mt-1 font-medium text-slate-900">
+                                            {device.minHumidity}% to {device.maxHumidity}%
+                                        </dd>
+                                    </div>
+                                </dl>
+                                <Link 
+                                    to={`/devices/${device.id}`} 
+                                    className="mt-5 inline-flex text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                                >
+                                    View details
+                                </Link>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </div>
         </PageLayout>
     )
 }

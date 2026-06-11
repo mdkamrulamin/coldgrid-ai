@@ -5,6 +5,7 @@ export type Device = {
     location: string
     storageType: string
     minTemperature: number
+    maxTemperature: number
     minHumidity: number
     maxHumidity: number
     batteryThreshold: number
