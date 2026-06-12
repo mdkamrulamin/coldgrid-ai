@@ -22,6 +22,7 @@ function DashboardPage() {
     const [devicesWithTelemetry, setDevicesWithTelemetry] = useState<DeviceWithLatestTelemetry[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null)
 
     useEffect(() => {
         async function loadDashboardData() {
@@ -30,7 +31,6 @@ function DashboardPage() {
             }
 
             try {
-                setIsLoading(true)
                 setErrorMessage(null)
                 //First load all devices of this user.
                 const devices = await getDevices(token)
@@ -56,6 +56,7 @@ function DashboardPage() {
                 )
 
                 setDevicesWithTelemetry(dashboardData)
+                setLastRefreshedAt(new Date())
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Unable to load dashboard data.'
                 setErrorMessage(message)
@@ -63,8 +64,16 @@ function DashboardPage() {
                 setIsLoading(false)
             }
         }
-
+        //Load immediately when the page opens.
         loadDashboardData()
+        //Refresh automatically every 5 seconds.
+        const intervalId = window.setInterval(() => {
+            loadDashboardData()
+        }, 5000)
+
+        return () => {
+            window.clearInterval(intervalId)
+        }
     }, [token])
 
     const totalDevices = devicesWithTelemetry.length
@@ -81,6 +90,11 @@ function DashboardPage() {
                 title="Dashboard"
                 description="Monitor renewable cold storage devices and their latest telemetry."
             />
+            {lastRefreshedAt && (
+                <p className="mt-4 text-sm text-slate-500">
+                    Last updated: {lastRefreshedAt.toLocaleTimeString()}
+                </p>
+            )}
 
             <div className="mt-8">
                 <FormError message={errorMessage} />
