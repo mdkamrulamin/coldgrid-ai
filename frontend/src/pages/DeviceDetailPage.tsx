@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, } from "recharts"
 
 import PageHeader from "../components/layout/PageHeader"
 import PageLayout from "../components/layout/PageLayout"
@@ -11,6 +10,7 @@ import StatusBadge from "../components/ui/StatusBadge"
 import { useAuth } from "../lib/AuthContext"
 import { getDevice } from "../services/deviceService"
 import { getDeviceTelemetry } from "../services/telemetryService"
+import TelemetryLineChart from "../components/charts/TelemetryLineChart"
 import type { Device } from "../types/device"
 import type { TelemetryReading } from "../types/telemetry"
 
@@ -200,99 +200,26 @@ function DeviceDetailPage() {
                                         Telemetry charts
                                     </h2>
                                     <div className="mt-6 grid gap-8 lg:grid-cols-2">
-                                        <div>
-                                            <h3 className="text-sm font-medium text-slate-700">
-                                                Temperature
-                                            </h3>
-                                            <div className="mt-3 h-64">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <LineChart data={chartData}>
-                                                        <CartesianGrid strokeDasharray="3 3" />
-                                                        <XAxis dataKey="time" />
-                                                        <YAxis />
-                                                        <Tooltip />
-                                                        <Line 
-                                                            type="monotone"
-                                                            dataKey="temperature"
-                                                            strokeWidth={2}
-                                                            dot={false} 
-                                                        />
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <h3 className="text-sm font-medium text-slate-700">
-                                                Battery level
-                                            </h3>
-                                            <div className="mt-3 h-64">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <LineChart data={chartData}>
-                                                        <CartesianGrid strokeDasharray="3 3" />
-                                                        <XAxis dataKey="time" />
-                                                        <YAxis />
-                                                        <Tooltip />
-                                                        <Line 
-                                                            type="monotone"
-                                                            dataKey="batteryLevel"
-                                                            strokeWidth={2}
-                                                            dot={false} 
-                                                        />
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <h3 className="text-sm font-medium text-slate-700">
-                                                Humidity
-                                            </h3>
-                                            <div className="mt-3 h-64">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <LineChart data={chartData}>
-                                                        <CartesianGrid strokeDasharray="3 3" />
-                                                        <XAxis dataKey="time" />
-                                                        <YAxis />
-                                                        <Tooltip />
-                                                        <Line 
-                                                            type="monotone"
-                                                            dataKey="humidity"
-                                                            strokeWidth={2}
-                                                            dot={false} 
-                                                        />
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <h3 className="text-sm font-medium text-slate-700">
-                                                Generated power vs Cooling load
-                                            </h3>
-                                            <div className="mt-3 h-64">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <LineChart data={chartData}>
-                                                        <CartesianGrid strokeDasharray="3 3" />
-                                                        <XAxis dataKey="time" />
-                                                        <YAxis />
-                                                        <Tooltip />
-                                                        <Line 
-                                                            type="monotone"
-                                                            dataKey="generatedPower"
-                                                            strokeWidth={2}
-                                                            dot={false} 
-                                                        />
-                                                        <Line 
-                                                            type="monotone"
-                                                            dataKey="coolingLoad"
-                                                            strokeWidth={2}
-                                                            dot={false} 
-                                                        />
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </div>
+                                        <TelemetryLineChart 
+                                            title="Temperature"
+                                            data={chartData}
+                                            dataKeys={['temperature']}
+                                        />
+                                        <TelemetryLineChart 
+                                            title="Battery level"
+                                            data={chartData}
+                                            dataKeys={['batteryLevel']}
+                                        />
+                                        <TelemetryLineChart 
+                                            title="Humidity"
+                                            data={chartData}
+                                            dataKeys={['humidity']}
+                                        />
+                                        <TelemetryLineChart 
+                                            title="Generated power vs Cooling load"
+                                            data={chartData}
+                                            dataKeys={['generatedPower', 'coolingLoad']}
+                                        />
                                     </div>
                                 </Card>
 
