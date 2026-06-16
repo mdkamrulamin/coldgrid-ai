@@ -6,6 +6,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import RegisterPage from "./pages/RegisterPage";
 import DevciesPage from "./pages/DevicesPage";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+import CreateDevicePage from "./pages/CreateDevicePage";
 
 function App() {
   return (
@@ -30,6 +31,12 @@ function App() {
             <DevciesPage />
           </ProtectedRoute>
         } />
+      <Route path="/devices/new"
+        element={
+          <ProtectedRoute>
+            <CreateDevicePage />
+          </ProtectedRoute>
+        } />  
       <Route path="/devices/:deviceId"
         element={
           <ProtectedRoute>
