@@ -38,10 +38,18 @@ function DevciesPage() {
 
     return (
         <PageLayout>
-            <PageHeader
-                title="Devices"
-                description="View renewable cold storage devices connected to your account."
-            />
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <PageHeader
+                    title="Devices"
+                    description="View renewable cold storage devices connected to your account."
+                />
+                <Link
+                    to="/devices/new"
+                    className="inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700"
+                >
+                    Create device
+                </Link>
+            </div>
             <div className="mt-8">
                 <FormError message={errorMessage} />
                 {isLoading && (
