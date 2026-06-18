@@ -26,6 +26,14 @@ export function createDevice(payload: CreateDeviceRequest, token: string) {
     })
 }
 
+export function updateDevice(deviceId: number, payload: Partial<CreateDeviceRequest>, token: string) {
+    return apiRequest<Device>(`/devices/${deviceId}`, {
+        method: 'PATCH',
+        body: payload,
+        token,
+    })
+}
+
 //Delete one device by its internal db ID.
 export function deleteDevice(deviceId: number, token: string) {
     return apiRequest<void>(`/devices/${deviceId}`, {
