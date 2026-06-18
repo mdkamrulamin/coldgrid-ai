@@ -1,72 +1,35 @@
-import { useState, type ComponentProps } from "react"
+import { useState } from "react"
 import { Link } from "react-router-dom"
 
+import DeviceForm from "../components/devices/DeviceForm"
 import PageHeader from "../components/layout/PageHeader"
 import PageLayout from "../components/layout/PageLayout"
-import Button from "../components/ui/Button"
 import Card from "../components/ui/Card"
 import CopyableCodeField from "../components/ui/CopyableCodeField"
-import FormError from "../components/ui/FormError"
-import TextInput from "../components/ui/TextInput"
 import { useAuth } from "../lib/AuthContext"
 import { createDevice } from "../services/deviceService"
-import type { CreateDeviceaResponse } from "../types/device"
+import type { CreateDeviceRequest, CreateDeviceaResponse } from "../types/device"
 
 function CreateDevicePage() {
     const { token } = useAuth()
-
-    const [name, setName] = useState('')
-    const [location, setLocation] = useState('')
-    const [storageType, setStorageType] = useState('Cold room')
-    const [minTemperature, setMinTemperature] = useState('2')
-    const [maxTemperature, setMaxTemperature] = useState('8')
-    const [minHumidity, setMinHumidity] = useState('60')
-    const [maxHumidity, setMaxHumidity] = useState('85')
-    const [batteryThreshold, setBatteryThreshold] = useState('30')
 
     const [createdDevice, setCreatedDevice] = useState<CreateDeviceaResponse | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-    const handleSubmit: ComponentProps<'form'>['onSubmit'] = async (event) => {
-        event.preventDefault()
-
+    async function handleCreateDevice(payload: CreateDeviceRequest) {
         if (!token) {
             setErrorMessage('You mush be logged in to create a device.')
             return
         }
-
-        setIsSubmitting(true)
-        setErrorMessage(null)
-        setCreatedDevice(null)
-
         try {
-            // Create the device using the logged-in user's JWT token.  Number inputs are stored as strings in React state because
-            // input values always come from the browser as strings. We convert them to numbers before sending to the backend.
-            const device = await createDevice(
-                {
-                    name,
-                    location,
-                    storageType,
-                    minTemperature: Number(minTemperature),
-                    maxTemperature: Number(maxTemperature),
-                    minHumidity: Number(minHumidity),
-                    maxHumidity: Number(maxHumidity),
-                    batteryThreshold: Number(batteryThreshold),
-                },
-                token,
-            )
+            setIsSubmitting(true)
+            setErrorMessage(null)
+            setCreatedDevice(null)
+            //Create the device using values received from common DeviceForm.
+            const device = await createDevice(payload, token)
+            // The api returns the key only once.
             setCreatedDevice(device)
-
-            //Clear form after device creation success.
-            setName('')
-            setLocation('')
-            setStorageType('2')
-            setMinTemperature('2')
-            setMaxTemperature('8')
-            setMinHumidity('60')
-            setMaxHumidity('85')
-            setBatteryThreshold('30')
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unable to create device.'
             setErrorMessage(message)
@@ -91,81 +54,12 @@ function CreateDevicePage() {
             </div>
             <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_420px">
                 <Card>
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <FormError message={errorMessage} />
-                        <TextInput
-                            label="Device name"
-                            name="name"
-                            type="text"
-                            placeholder="Ottawa Cold Room 01"
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            required
-                        />
-                        <TextInput
-                            label="Location"
-                            name="location"
-                            type="text"
-                            placeholder="Ottawa, Canada"
-                            value={location}
-                            onChange={(event) => setLocation(event.target.value)}
-                            required
-                        />
-                        <TextInput
-                            label="Storage type"
-                            name="storageType"
-                            type="text"
-                            placeholder="Cold room"
-                            value={storageType}
-                            onChange={(event) => setStorageType(event.target.value)}
-                            required
-                        />
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <TextInput
-                                label="Minimum temperature"
-                                name="minTemperature"
-                                type="number"
-                                value={minTemperature}
-                                onChange={(event) => setMinTemperature(event.target.value)}
-                                required
-                            />
-                            <TextInput
-                                label="Maximum temperature"
-                                name="maxTemperature"
-                                type="number"
-                                value={maxTemperature}
-                                onChange={(event) => setMaxTemperature(event.target.value)}
-                                required
-                            />
-                            <TextInput
-                                label="Minimum humidity"
-                                name="minHumidity"
-                                type="number"
-                                value={minHumidity}
-                                onChange={(event) => setMinHumidity(event.target.value)}
-                                required
-                            />
-                            <TextInput
-                                label="Maximum humidity"
-                                name="maxHumidity"
-                                type="number"
-                                value={maxHumidity}
-                                onChange={(event) => setMaxHumidity(event.target.value)}
-                                required
-                            />
-                            <TextInput
-                                label="Battery threshold"
-                                name="batteryThreshold"
-                                type="number"
-                                value={batteryThreshold}
-                                onChange={(event) => setBatteryThreshold(event.target.value)}
-                                required
-                            />
-                        </div>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? 'Creating device...' : 'Create device'}
-                        </Button>
-                    </form>
+                    <DeviceForm 
+                        submitLabel="Create device"
+                        isSubmitting={isSubmitting}
+                        errorMessage={errorMessage}
+                        onSubmit={handleCreateDevice}
+                    />
                 </Card>
                 <Card>
                     <h2 className="text-lg font-semibold text-slate-900">
@@ -198,7 +92,9 @@ function CreateDevicePage() {
                         </p>
                     )}
                 </Card>
+                
             </div>
+
         </PageLayout>
     )
 }
