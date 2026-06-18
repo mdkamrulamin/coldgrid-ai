@@ -7,6 +7,7 @@ import RegisterPage from "./pages/RegisterPage";
 import DevciesPage from "./pages/DevicesPage";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import CreateDevicePage from "./pages/CreateDevicePage";
+import EditDevicePage from "./pages/EditDevicePage";
 
 function App() {
   return (
@@ -36,7 +37,13 @@ function App() {
           <ProtectedRoute>
             <CreateDevicePage />
           </ProtectedRoute>
-        } />  
+        } />
+      <Route path="/devices/:deviceId/edit"
+        element={
+          <ProtectedRoute>
+            <EditDevicePage />
+          </ProtectedRoute>
+        } />
       <Route path="/devices/:deviceId"
         element={
           <ProtectedRoute>
