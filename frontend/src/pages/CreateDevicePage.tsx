@@ -5,6 +5,7 @@ import PageHeader from "../components/layout/PageHeader"
 import PageLayout from "../components/layout/PageLayout"
 import Button from "../components/ui/Button"
 import Card from "../components/ui/Card"
+import CopyableCodeField from "../components/ui/CopyableCodeField"
 import FormError from "../components/ui/FormError"
 import TextInput from "../components/ui/TextInput"
 import { useAuth } from "../lib/AuthContext"
@@ -52,7 +53,7 @@ function CreateDevicePage() {
                     minHumidity: Number(minHumidity),
                     maxHumidity: Number(maxHumidity),
                     batteryThreshold: Number(batteryThreshold),
-                }, 
+                },
                 token,
             )
             setCreatedDevice(device)
@@ -77,7 +78,7 @@ function CreateDevicePage() {
     return (
         <PageLayout>
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <PageHeader 
+                <PageHeader
                     title="Create device"
                     description="Onboard a new renewable cold storage monitoring device."
                 />
@@ -99,7 +100,7 @@ function CreateDevicePage() {
                             placeholder="Ottawa Cold Room 01"
                             value={name}
                             onChange={(event) => setName(event.target.value)}
-                            required 
+                            required
                         />
                         <TextInput
                             label="Location"
@@ -108,7 +109,7 @@ function CreateDevicePage() {
                             placeholder="Ottawa, Canada"
                             value={location}
                             onChange={(event) => setLocation(event.target.value)}
-                            required 
+                            required
                         />
                         <TextInput
                             label="Storage type"
@@ -117,7 +118,7 @@ function CreateDevicePage() {
                             placeholder="Cold room"
                             value={storageType}
                             onChange={(event) => setStorageType(event.target.value)}
-                            required 
+                            required
                         />
                         <div className="grid gap-4 sm:grid-cols-2">
                             <TextInput
@@ -126,7 +127,7 @@ function CreateDevicePage() {
                                 type="number"
                                 value={minTemperature}
                                 onChange={(event) => setMinTemperature(event.target.value)}
-                                required 
+                                required
                             />
                             <TextInput
                                 label="Maximum temperature"
@@ -134,7 +135,7 @@ function CreateDevicePage() {
                                 type="number"
                                 value={maxTemperature}
                                 onChange={(event) => setMaxTemperature(event.target.value)}
-                                required 
+                                required
                             />
                             <TextInput
                                 label="Minimum humidity"
@@ -142,7 +143,7 @@ function CreateDevicePage() {
                                 type="number"
                                 value={minHumidity}
                                 onChange={(event) => setMinHumidity(event.target.value)}
-                                required 
+                                required
                             />
                             <TextInput
                                 label="Maximum humidity"
@@ -150,7 +151,7 @@ function CreateDevicePage() {
                                 type="number"
                                 value={maxHumidity}
                                 onChange={(event) => setMaxHumidity(event.target.value)}
-                                required 
+                                required
                             />
                             <TextInput
                                 label="Battery threshold"
@@ -158,7 +159,7 @@ function CreateDevicePage() {
                                 type="number"
                                 value={batteryThreshold}
                                 onChange={(event) => setBatteryThreshold(event.target.value)}
-                                required 
+                                required
                             />
                         </div>
                         <Button type="submit" disabled={isSubmitting}>
@@ -177,22 +178,16 @@ function CreateDevicePage() {
 
                     {createdDevice ? (
                         <div className="mt-5 space-y-4">
-                            <div>
-                                <p className="text-sm font-medium text-slate-700">
-                                    Device UID
-                                </p>
-                                <p className="mt-2 break-all rounded-lg bg-slate-50 p-3 font-mono text-xs text-slate-900">
-                                    {createdDevice.deviceId}
-                                </p>
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-slate-700">
-                                    API key
-                                </p>
-                                <p className="mt-2 break-all rounded-lg border border-amber-200 bg-amber-50 p-3 font-mono text-xs text-amber-900">
-                                    {createdDevice.apiKey}
-                                </p>
-                            </div>
+                            <CopyableCodeField
+                                label="Device UID"
+                                text={createdDevice.deviceId}
+                            />
+
+                            <CopyableCodeField
+                                label="API key"
+                                text={createdDevice.apiKey}
+                                tone="warning"
+                            />
                             <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
                                 Save this API key now. You will not be able to view it again.
                             </p>
