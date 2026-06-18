@@ -6,7 +6,7 @@ import PageLayout from "../components/layout/PageLayout"
 import Card from "../components/ui/Card"
 import FormError from "../components/ui/FormError"
 import { useAuth } from "../lib/AuthContext"
-import { getDevices } from "../services/deviceService"
+import { getDevices, deleteDevice } from "../services/deviceService"
 import type { Device } from "../types/device"
 
 function DevciesPage() {
@@ -33,8 +33,33 @@ function DevciesPage() {
                 setIsLoading(false)
             }
         }
+
         loadDevices()
     }, [token])
+
+    async function handleDeleteDevice(device: Device) {
+            if (!token) {
+                return
+            }
+            const confirmed = window.confirm(
+                `Delete "${device.name}"? This action cannot be undone.`
+            )
+            if (!confirmed) {
+                return
+            }
+            try {
+                setErrorMessage(null)
+                //Delete the device from db.
+                await deleteDevice(device.id, token)
+                //Remove it from the UI without full reload.
+                setDevices((currentDevices) =>
+                    currentDevices.filter((item) => item.id !== device.id), 
+                )
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Unable to delete device.'
+                setErrorMessage(message)
+            }
+        }
 
     return (
         <PageLayout>
@@ -110,12 +135,27 @@ function DevciesPage() {
                                         </dd>
                                     </div>
                                 </dl>
-                                <Link 
-                                    to={`/devices/${device.id}`} 
-                                    className="mt-5 inline-flex text-sm font-medium text-emerald-700 hover:text-emerald-800"
-                                >
-                                    View details
-                                </Link>
+                                <div className="mt-5 flex flex-wrap gap-3">
+                                    <Link
+                                        to={`/devices/${device.id}`}
+                                        className="inline-flex text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                                    >
+                                        View details
+                                    </Link>
+                                    <Link
+                                        to={`/devices/${device.id}/edit`}
+                                        className="inline-flex text-sm font-medium text-slate-700 hover:text-slate-900"
+                                    >
+                                        Edit
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDeleteDevice(device)}
+                                        className="inline-flex text-sm font-medium text-red-600 hover:text-red-700"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
                             </Card>
                         ))}
                     </div>
