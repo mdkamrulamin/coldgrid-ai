@@ -29,12 +29,12 @@ class Alert(Base):
     
     # Alert status: active, resolved.
     status: Mapped[str] = mapped_column(String(30), default="active", index=True)
-    created_at = Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), 
         default=lambda: datetime.now(timezone.utc),
     )
     
-    resolved_at = Mapped[datetime | None] = mapped_column(
+    resolved_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), 
         nullable=True,
     )
