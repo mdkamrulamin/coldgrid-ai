@@ -31,7 +31,7 @@ class Telemetry(Base):
     # device_id = 1
     """
     device_id: Mapped[int] = mapped_column(
-        ForeignKey("devices.id"),
+        ForeignKey("devices.id", ondelete="CASCADE"),
         index=True,
         nullable=False,
     )
