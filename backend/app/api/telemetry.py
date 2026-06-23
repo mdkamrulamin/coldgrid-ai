@@ -10,6 +10,7 @@ from app.models.device import Device
 from app.models.telemetry import Telemetry
 from app.models.user import User
 from app.schemas.telemetry import TelemetryCreate, TelemetryResponse
+from app.services.alert_service import evaluate_telemetry_alert_rules
 
 # Create a router for telemetry-related endpoints.
 #
@@ -85,9 +86,10 @@ def create_telemetry_reading(
     4. Save the reading only when credentials are valid.
     """
     device = (
-        db.query(Device).filter(Device.device_uid == telemetry_data.device_id)
-        .first()
-        )       # Find the device using its public device ID.
+        db.query(Device).filter(
+            Device.device_uid == telemetry_data.device_id
+        ).first()
+    )       # Find the device using its public device ID.
     
     # This avoids revealing whether a particular device ID exists.
     if device is None or not verify_api_key(device_api_key, device.api_key_hash):
@@ -95,6 +97,12 @@ def create_telemetry_reading(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid device credentials.",
         )
+    
+    previous_telemetry = (
+        db.query(Telemetry).filter(
+                Telemetry.device_id == device.id
+            ).order_by(Telemetry.timestamp.desc()).first()
+    )   # Get previous telemetry before adding the new one.
         
     new_telemetry = Telemetry(
         device_id=device.id,
@@ -108,6 +116,15 @@ def create_telemetry_reading(
     )       # Create a new telemetry database object.     
     
     db.add(new_telemetry)
+    
+    # Evaluate alert rules before commit. Alert rows will be committed together with the telemetry reading.
+    evaluate_telemetry_alert_rules(
+        db=db,
+        device=device,
+        current_telemetry=new_telemetry,
+        previous_telemetry=previous_telemetry,
+    )
+    
     db.commit()
     db.refresh(new_telemetry)
     
