@@ -219,11 +219,14 @@ def evaluate_telemetry_alert_rules(db: Session, device: Device, current_telemetr
     )
 
 def ensure_aware_utc(value: datetime) -> datetime:
+    # Some older models may still store naive datetime values. A naive datetime has no timezone information.
+    # To safely compare times, we treat naive values as UTC.
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
     return value.astimezone(timezone.utc)
 
 def evaluate_offline_alert_rules(db: Session) -> None:
+    # Check every device and create/resolve device_offline alerts. This is different from telemetry-based rules because it runs even when no telemetry is arriving.
     devices = db.query(Device).all()
     now = utc_now()
     offline_threshold = timedelta(seconds=OFFLINE_THRESHOLD_SECONDS)
