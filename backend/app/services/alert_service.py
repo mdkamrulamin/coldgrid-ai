@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,7 @@ POWER_DROP_PERCENTAGE = 0.40
 MIN_PREVIOUS_GENERATED_POWER_FOR_DROP = 100.0
 LOW_GENERATION_RATIO = 0.50
 HIGH_COOLING_LOAD_THRESHOLD = 900.0
+OFFLINE_THRESHOLD_SECONDS = 60
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
@@ -216,4 +217,43 @@ def evaluate_telemetry_alert_rules(db: Session, device: Device, current_telemetr
         severity="critical",
         message="Cooling system may not be operating correctly.",
     )
+
+def ensure_aware_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+def evaluate_offline_alert_rules(db: Session) -> None:
+    devices = db.query(Device).all()
+    now = utc_now()
+    offline_threshold = timedelta(seconds=OFFLINE_THRESHOLD_SECONDS)
+    
+    for device in devices:
+        latest_telemetry = (
+            db.query(Telemetry).filter(Telemetry.device_id == device.id)
+            .order_by(Telemetry.timestamp.desc()).first()
+        )
+        if latest_telemetry:
+            latest_timestamp = ensure_aware_utc(latest_telemetry.timestamp)
+            seconds_since_latest = (now - latest_timestamp).total_seconds()
+            is_offline = now - latest_timestamp > offline_threshold
+            message = (
+                f"Device has not sent telemetry for {round(seconds_since_latest)} seconds."
+            )
+        else:
+            device_created_at = ensure_aware_utc(device.created_at)
+            seconds_since_created = (now - device_created_at).total_seconds()
+            is_offline = now - device_created_at > offline_threshold
+            message = (
+                f"Device has not sent any telemetry for {round(seconds_since_created)} seconds since creation."
+            )
+        
+        sync_alert(
+            db=db, 
+            device_id=device.id, 
+            alert_type="device_offline", 
+            should_be_active=is_offline,
+            severity="high",
+            message=message,
+        )
     
