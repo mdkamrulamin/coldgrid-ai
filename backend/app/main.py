@@ -1,12 +1,31 @@
+import asyncio
 # https://fastapi.tiangolo.com/#create-it
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.api.auth import router as auth_router
 from app.api.devices import router as devices_router
 from app.api.telemetry import router as telemetry_router
+from app.services.offline_monitor import run_offline_monitor
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Start the offline monitor when the backend starts.
+    offline_monitor_task = asyncio.create_task(run_offline_monitor())
+    
+    try:
+        yield
+    finally:
+        # Stop the monitor cleanly when the backend shuts down.
+        offline_monitor_task.cancel()
+        
+        try:
+            await offline_monitor_task
+        except asyncio.CancelledError:
+            pass
 
 # To run 'app' object use: uvicorn app.main:app --reload
 # Check: http://localhost:8000/
@@ -14,6 +33,7 @@ app = FastAPI(
     title="ColdGrid AI API",        # Name shown in API docs.
     description="Backend API for ColdGrid AI cold storage monitoring platform",
     version="0.1.0",        # Current backend API version.
+    lifespan=lifespan,
 ) # Create the main FastAPI application instance.
 
 
