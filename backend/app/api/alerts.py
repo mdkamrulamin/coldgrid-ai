@@ -68,7 +68,7 @@ def get_alerts(
     ]
     
 
-@router.get("/devices/{device_uid}/alerts", response_model=[AlertResponse])
+@router.get("/devices/{device_uid}/alerts", response_model=list[AlertResponse])
 def get_device_alerts(
     device_uid: str,
     status_filter: AlertStatusFilter | None = Query(default=None, alias="status"),
