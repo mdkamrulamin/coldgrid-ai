@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.api.auth import router as auth_router
 from app.api.devices import router as devices_router
 from app.api.telemetry import router as telemetry_router
+from app.api.alerts import router as alerts_router
 from app.services.offline_monitor import run_offline_monitor
 
 
@@ -51,6 +52,7 @@ app.add_middleware(
 app.include_router(auth_router)     # Register authentication routes.
 app.include_router(devices_router)  # Register device management routes.
 app.include_router(telemetry_router)    # Register telemetry ingestion and reading routes.
+app.include_router(alerts_router)       #Register alert routes.
 
 #Simple health checkpoint used to confrim that the backend server is running properly
 @app.get("/health")
