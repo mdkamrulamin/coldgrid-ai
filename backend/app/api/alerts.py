@@ -24,14 +24,15 @@ def build_alert_response(alert: Alert, device: Device) -> dict:
     # The frontend also needs device UID and device name, especially on the global /alerts page.
     return {
         "id": alert.id,
-        "device_id": device.device_uid,
-        "device_name": device.name,
-        "alert_type": alert.alert_type,
+        "deviceDatabaseId": alert.device_id,
+        "deviceUid": device.device_uid,
+        "deviceName": device.name,
+        "alertType": alert.alert_type,
         "severity": alert.severity,
         "message": alert.message,
         "status": alert.status,
-        "created_at": alert.created_at,
-        "resolved_at": alert.resolved_at,
+        "createdAt": alert.created_at,
+        "resolvedAt": alert.resolved_at,
     }
     
 @router.get("/alerts", response_model=list[AlertResponse])
