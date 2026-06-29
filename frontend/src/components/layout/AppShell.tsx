@@ -16,6 +16,10 @@ const navItems = [
         label: 'Devices',
         to: '/devices',
     },
+    {
+        label: 'Alerts',
+        to: '/alerts',
+    }
 ]
 
 // Main authenticated app layout. This wraps protected pages with:
@@ -71,8 +75,8 @@ function AppShell({ children }: AppShellProps) {
                                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                 }`
                             }>
-                                {item.label}
-                            </NavLink>
+                            {item.label}
+                        </NavLink>
                     ))}
                 </div>
             </nav>
