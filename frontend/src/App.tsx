@@ -1,13 +1,14 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import DashboardPage from "./pages/DashboardPage";
-import DeviceDetailPage from "./pages/DeviceDetailPage";
-import LoginPage from "./pages/LoginPage";
-import NotFoundPage from "./pages/NotFoundPage";
-import RegisterPage from "./pages/RegisterPage";
-import DevciesPage from "./pages/DevicesPage";
-import ProtectedRoute from "./components/layout/ProtectedRoute";
-import CreateDevicePage from "./pages/CreateDevicePage";
-import EditDevicePage from "./pages/EditDevicePage";
+import { Navigate, Route, Routes } from "react-router-dom"
+import DashboardPage from "./pages/DashboardPage"
+import DeviceDetailPage from "./pages/DeviceDetailPage"
+import LoginPage from "./pages/LoginPage"
+import NotFoundPage from "./pages/NotFoundPage"
+import RegisterPage from "./pages/RegisterPage"
+import DevciesPage from "./pages/DevicesPage"
+import ProtectedRoute from "./components/layout/ProtectedRoute"
+import CreateDevicePage from "./pages/CreateDevicePage"
+import EditDevicePage from "./pages/EditDevicePage"
+import AlertsPage from "./pages/AlertsPage"
 
 function App() {
   return (
@@ -50,6 +51,13 @@ function App() {
             <DeviceDetailPage />
           </ProtectedRoute>
         } />
+      <Route path="/alerts"
+        element={
+          <ProtectedRoute>
+            <AlertsPage />
+          </ProtectedRoute>
+        } />
+
 
       {/* Catch-all route for unknown URLs. */}
       <Route path="/*" element={<NotFoundPage />} />
