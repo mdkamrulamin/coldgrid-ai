@@ -86,10 +86,25 @@ function DashboardPage() {
     }, [token])
 
     const totalDevices = devicesWithTelemetry.length
-    const activeDevices = devicesWithTelemetry.filter((item) => item.latestTelemetry).length
+    const devicesWithTelemetryCount = devicesWithTelemetry.filter((item) => item.latestTelemetry).length
     const activeAlertCount = activeAlerts.length
     const criticalAlertCount = activeAlerts.filter((alert) => alert.severity === 'critical').length
     const offlineDeviceCount = activeAlerts.filter((alert) => alert.alertType === 'device_offline').length
+
+    function getDeviceDisplayStatus(device: Device, latestTelemetry: TelemetryReading | null) {
+        const hasOfflineAlert = activeAlerts.some(
+            (alert) => alert.deviceDatabaseId === device.id &&
+                alert.alertType === 'device_offline',
+        )
+        if (hasOfflineAlert) {
+            return 'offline'
+        }
+        if (!latestTelemetry) {
+            return 'no telemetry'
+        }
+
+        return latestTelemetry.status
+    }
 
     return (
         <PageLayout>
@@ -112,7 +127,7 @@ function DashboardPage() {
                 )}
                 {!isLoading && (
                     <>
-                        <div className="grid gap-4 md:grid-cols-3">
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                             <Card>
                                 <p className="text-sm text-slate-500">Total devices</p>
                                 <p className="mt-2 text-3xl font-bold text-slate-900">
@@ -122,7 +137,7 @@ function DashboardPage() {
                             <Card>
                                 <p className="text-sm text-slate-500">Devices with telemetry</p>
                                 <p className="mt-2 text-3xl font-bold text-slate-900">
-                                    {activeDevices}
+                                    {devicesWithTelemetryCount}
                                 </p>
                             </Card>
                             <Card>
@@ -144,6 +159,12 @@ function DashboardPage() {
                                 </p>
                             </Card>
                         </div>
+                        <Link
+                            to="/alerts"
+                            className="mt-4 inline-flex text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                        >
+                            View all alerts
+                        </Link>
                         <div className="mt-8">
                             <h2 className="text-lg font-semibold text-slate-900">
                                 Latest device status
@@ -157,76 +178,80 @@ function DashboardPage() {
                                 </Card>
                             ) : (
                                 <div className="mt-4 grid gap-4">
-                                    {devicesWithTelemetry.map(({ device, latestTelemetry }) => (
-                                        <Card key={device.id}>
-                                            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                                                <div>
-                                                    <h3 className="text-lg font-semibold text-slate-900">
-                                                        {device.name}
-                                                    </h3>
-                                                    <p className="mt-1 text-sm text-slate-600">
-                                                        {device.location}
-                                                    </p>
-                                                    <p className="mt-2 font-mono text-xs text-slate-500">
-                                                        {device.deviceId}
-                                                    </p>
+                                    {devicesWithTelemetry.map(({ device, latestTelemetry }) => {
+                                        const displayStatus = getDeviceDisplayStatus(device, latestTelemetry)
+                                        return (
+                                            <Card key={device.id}>
+                                                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                                    <div>
+                                                        <h3 className="text-lg font-semibold text-slate-900">
+                                                            {device.name}
+                                                        </h3>
+                                                        <p className="mt-1 text-sm text-slate-600">
+                                                            {device.location}
+                                                        </p>
+                                                        <p className="mt-2 font-mono text-xs text-slate-500">
+                                                            {device.deviceId}
+                                                        </p>
+                                                    </div>
+
+                                                    {displayStatus === 'no telemetry' ? (
+                                                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                                                            No telemetry
+                                                        </span>
+                                                    ) : (
+                                                        <StatusBadge status={displayStatus} />
+                                                    )}
                                                 </div>
 
                                                 {latestTelemetry ? (
-                                                    <StatusBadge status={latestTelemetry.status} />
+                                                    <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-5">
+                                                        <div>
+                                                            <dt className="text-slate-500">Temperature</dt>
+                                                            <dd className="mt-1 font-semibold text-slate-900">
+                                                                {latestTelemetry.temperature}°C
+                                                            </dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt className="text-slate-500">Humidity</dt>
+                                                            <dd className="mt-1 font-semibold text-slate-900">
+                                                                {latestTelemetry.humidity}%
+                                                            </dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt className="text-slate-500">Battery</dt>
+                                                            <dd className="mt-1 font-semibold text-slate-900">
+                                                                {latestTelemetry.batteryLevel}%
+                                                            </dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt className="text-slate-500">Generated power</dt>
+                                                            <dd className="mt-1 font-semibold text-slate-900">
+                                                                {latestTelemetry.generatedPower} W
+                                                            </dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt className="text-slate-500">Cooling load</dt>
+                                                            <dd className="mt-1 font-semibold text-slate-900">
+                                                                {latestTelemetry.coolingLoad} W
+                                                            </dd>
+                                                        </div>
+                                                    </dl>
                                                 ) : (
-                                                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                                                        No telemetry
-                                                    </span>
+                                                    <p className="mt-5 text-sm text-slate-600">
+                                                        No telemetry has been received for this device yet.
+                                                    </p>
                                                 )}
-                                            </div>
+                                                <Link
+                                                    to={`/devices/${device.id}`}
+                                                    className="mt-5 inline-flex text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                                                >
+                                                    View Details
+                                                </Link>
+                                            </Card>
+                                        )
 
-                                            {latestTelemetry ? (
-                                                <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-5">
-                                                    <div>
-                                                        <dt className="text-slate-500">Temperature</dt>
-                                                        <dd className="mt-1 font-semibold text-slate-900">
-                                                            {latestTelemetry.temperature}°C
-                                                        </dd>
-                                                    </div>
-                                                    <div>
-                                                        <dt className="text-slate-500">Humidity</dt>
-                                                        <dd className="mt-1 font-semibold text-slate-900">
-                                                            {latestTelemetry.humidity}%
-                                                        </dd>
-                                                    </div>
-                                                    <div>
-                                                        <dt className="text-slate-500">Battery</dt>
-                                                        <dd className="mt-1 font-semibold text-slate-900">
-                                                            {latestTelemetry.batteryLevel}%
-                                                        </dd>
-                                                    </div>
-                                                    <div>
-                                                        <dt className="text-slate-500">Generated power</dt>
-                                                        <dd className="mt-1 font-semibold text-slate-900">
-                                                            {latestTelemetry.generatedPower} W
-                                                        </dd>
-                                                    </div>
-                                                    <div>
-                                                        <dt className="text-slate-500">Cooling load</dt>
-                                                        <dd className="mt-1 font-semibold text-slate-900">
-                                                            {latestTelemetry.coolingLoad} W
-                                                        </dd>
-                                                    </div>
-                                                </dl>
-                                            ) : (
-                                                <p className="mt-5 text-sm text-slate-600">
-                                                    No telemetry has been received for this device yet.
-                                                </p>
-                                            )}
-                                            <Link
-                                                to={`/devices/${device.id}`}
-                                                className="mt-5 inline-flex text-sm font-medium text-emerald-700 hover:text-emerald-800"
-                                            >
-                                                View Details
-                                            </Link>
-                                        </Card>
-                                    ))}
+                                    })}
                                 </div>
                             )}
                         </div>
