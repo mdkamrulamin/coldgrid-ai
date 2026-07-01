@@ -9,6 +9,8 @@ import StatusBadge from "../components/ui/StatusBadge"
 import { useAuth } from "../lib/AuthContext"
 import { getDevices } from "../services/deviceService"
 import { getLatestTelemetry } from "../services/telemetryService"
+import { getAlerts } from "../services/alertService"
+import type { Alert } from "../types/alert"
 import type { Device } from "../types/device"
 import type { TelemetryReading } from "../types/telemetry"
 
@@ -20,6 +22,7 @@ type DeviceWithLatestTelemetry = {
 function DashboardPage() {
     const { token } = useAuth()
     const [devicesWithTelemetry, setDevicesWithTelemetry] = useState<DeviceWithLatestTelemetry[]>([])
+    const [activeAlerts, setActiveAlerts] = useState<Alert[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null)
@@ -55,7 +58,13 @@ function DashboardPage() {
                     }),
                 )
 
+                // Load active alerts across all devices.
+                const alertList = await getAlerts(token, {
+                    status: 'active'
+                })
+
                 setDevicesWithTelemetry(dashboardData)
+                setActiveAlerts(alertList)
                 setLastRefreshedAt(new Date())
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Unable to load dashboard data.'
@@ -78,11 +87,9 @@ function DashboardPage() {
 
     const totalDevices = devicesWithTelemetry.length
     const activeDevices = devicesWithTelemetry.filter((item) => item.latestTelemetry).length
-
-    const warningDevices = devicesWithTelemetry.filter((item) => {
-        const status = item.latestTelemetry?.status.toLowerCase()
-        return status && status !== 'normal'
-    }).length
+    const activeAlertCount = activeAlerts.length
+    const criticalAlertCount = activeAlerts.filter((alert) => alert.severity === 'critical').length
+    const offlineDeviceCount = activeAlerts.filter((alert) => alert.alertType === 'device_offline').length
 
     return (
         <PageLayout>
@@ -119,9 +126,21 @@ function DashboardPage() {
                                 </p>
                             </Card>
                             <Card>
-                                <p className="text-sm text-slate-500">Warnings / issues</p>
+                                <p className="text-sm text-slate-500">Active alerts</p>
                                 <p className="mt-2 text-3xl font-bold text-slate-900">
-                                    {warningDevices}
+                                    {activeAlertCount}
+                                </p>
+                            </Card>
+                            <Card>
+                                <p className="text-sm text-slate-500">Critical alerts</p>
+                                <p className="mt-2 text-3xl font-bold text-slate-900">
+                                    {criticalAlertCount}
+                                </p>
+                            </Card>
+                            <Card>
+                                <p className="text-sm text-slate-500">Offline devices</p>
+                                <p className="mt-2 text-3xl font-bold text-slate-900">
+                                    {offlineDeviceCount}
                                 </p>
                             </Card>
                         </div>
