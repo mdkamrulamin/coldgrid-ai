@@ -73,7 +73,7 @@ function AlertsPage() {
                 currentAlerts.map((alert) => alert.id === updatedAlert.id ? updatedAlert : alert)
             )
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unable to load alerts.'
+            const message = error instanceof Error ? error.message : 'Unable to resolve alert.'
             setErrorMessage(message)
         } finally {
             setIsResolvingId(null)
@@ -99,19 +99,19 @@ function AlertsPage() {
             <div className="mt-8 grid gap-4 md:grid-cols-3">
                 <Card>
                     <p className="text-sm text-slate-500">Visible alerts</p>
-                    <p className="mt-2 text-3xl font-bold text-slate900">
+                    <p className="mt-2 text-3xl font-bold text-slate-900">
                         {alerts.length}
                     </p>
                 </Card>
                 <Card>
                     <p className="text-sm text-slate-500">Active alerts</p>
-                    <p className="mt-2 text-3xl font-bold text-slate900">
+                    <p className="mt-2 text-3xl font-bold text-slate-900">
                         {activeAlertCount}
                     </p>
                 </Card>
                 <Card>
                     <p className="text-sm text-slate-500">Active critical alerts</p>
-                    <p className="mt-2 text-3xl font-bold text-slate900">
+                    <p className="mt-2 text-3xl font-bold text-slate-900">
                         {criticalAlertCount}
                     </p>
                 </Card>
@@ -215,7 +215,7 @@ function AlertsPage() {
                                                 {new Date(alert.createdAt).toLocaleString()}
                                             </td>
                                             <td className="py-4 pr-4 align-top text-slate-700">
-                                                {alert.resolvedAt ? new Date(alert.createdAt).toLocaleString() : '-'}
+                                                {alert.resolvedAt ? new Date(alert.resolvedAt).toLocaleString() : '-'}
                                             </td>
                                             <td className="py-4 pr-4 align-top">
                                                 {alert.status === 'active' ? (
