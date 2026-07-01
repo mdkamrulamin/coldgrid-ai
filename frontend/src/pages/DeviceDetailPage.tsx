@@ -46,15 +46,15 @@ function DeviceDetailPage() {
             try {
                 setErrorMessage(null)
                 //First load device by internal DB Id.
-                const seletedDevice = await getDevice(numericDeviceId, token)
-                setDevice(seletedDevice)
+                const selectedDevice = await getDevice(numericDeviceId, token)
+                setDevice(selectedDevice)
 
                 //Load telemetry using the public device UID.
-                const readings = await getDeviceTelemetry(seletedDevice.deviceId, token)
+                const readings = await getDeviceTelemetry(selectedDevice.deviceId, token)
                 setTelemetry(readings)
 
                 // Load alerts for this device.
-                const alertList = await getDeviceAlerts(seletedDevice.deviceId, token)
+                const alertList = await getDeviceAlerts(selectedDevice.deviceId, token)
                 setAlerts(alertList)
 
                 setLastRefreshedAt(new Date())
@@ -106,6 +106,7 @@ function DeviceDetailPage() {
         }
         try {
             setIsResolvingAlertId(alertId)
+            setErrorMessage(null)
             const updatedAlert = await resolveAlert(alertId, token)
             setAlerts((currentAlerts) => currentAlerts.map((alert) => alert.id === updatedAlert.id ? updatedAlert : alert))
         } catch (error) {
@@ -261,7 +262,7 @@ function DeviceDetailPage() {
                                     <MetricCard
                                         label="Battery"
                                         value={`${latestTelemetry.batteryLevel}%`}
-                                        helperText={`Target: ${device.batteryThreshold}%`}
+                                        helperText={`Threshold: ${device.batteryThreshold}%`}
                                     />
                                     <MetricCard
                                         label="Generated power"
@@ -319,7 +320,7 @@ function DeviceDetailPage() {
                                         Recent telemetry
                                     </h2>
                                     <div className="mt-5 overflow-x-auto">
-                                        <table className="min-2-full divide-y divide-slate-200 text-sm">
+                                        <table className="min-w-full divide-y divide-slate-200 text-sm">
                                             <thead>
                                                 <tr className="text-left text-slate-500">
                                                     <th className="py-3 pr-4 font-medium">Time</th>
@@ -362,39 +363,6 @@ function DeviceDetailPage() {
                                         </table>
                                     </div>
                                 </Card>
-                                <Card>
-                                    <h2 className="text-lg font-semibold text-slate-900">
-                                        Resolved alert history
-                                    </h2>
-                                    {resolvedAlerts.length === 0 ? (
-                                        <p className="mt-5 text-sm text-slate-600">
-                                            No resolved alerts yets.
-                                        </p>
-                                    ) : (
-                                        <div className="mt-5 space-y-3">
-                                            {resolvedAlerts.slice(0, 5).map((alert) => (
-                                                <div
-                                                    key={alert.id}
-                                                    className="rounded-lg border border-slate-200 p-4"
-                                                >
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <SeverityBadge severity={alert.severity} />
-                                                        <p className="font-medium text-slate-900">
-                                                            {formatAlertType(alert.alertType)}
-                                                        </p>
-                                                    </div>
-                                                    <p className="mt-2 text-sm text-slate-600">
-                                                        {alert.message}
-                                                    </p>
-                                                    <p className="mt-2 text-xs text-slate-500">
-                                                        Resolved:{' '}
-                                                        {alert.resolvedAt ? new Date(alert.resolvedAt).toLocaleString() : '-'}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </Card>
                             </>
                         ) : (
                             <Card>
@@ -406,6 +374,39 @@ function DeviceDetailPage() {
                                 </p>
                             </Card>
                         )}
+                        <Card>
+                            <h2 className="text-lg font-semibold text-slate-900">
+                                Resolved alert history
+                            </h2>
+                            {resolvedAlerts.length === 0 ? (
+                                <p className="mt-5 text-sm text-slate-600">
+                                    No resolved alerts yet.
+                                </p>
+                            ) : (
+                                <div className="mt-5 space-y-3">
+                                    {resolvedAlerts.slice(0, 5).map((alert) => (
+                                        <div
+                                            key={alert.id}
+                                            className="rounded-lg border border-slate-200 p-4"
+                                        >
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <SeverityBadge severity={alert.severity} />
+                                                <p className="font-medium text-slate-900">
+                                                    {formatAlertType(alert.alertType)}
+                                                </p>
+                                            </div>
+                                            <p className="mt-2 text-sm text-slate-600">
+                                                {alert.message}
+                                            </p>
+                                            <p className="mt-2 text-xs text-slate-500">
+                                                Resolved:{' '}
+                                                {alert.resolvedAt ? new Date(alert.resolvedAt).toLocaleString() : '-'}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </Card>
                     </div>
                 )}
             </div>
