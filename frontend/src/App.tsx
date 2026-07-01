@@ -4,7 +4,7 @@ import DeviceDetailPage from "./pages/DeviceDetailPage"
 import LoginPage from "./pages/LoginPage"
 import NotFoundPage from "./pages/NotFoundPage"
 import RegisterPage from "./pages/RegisterPage"
-import DevciesPage from "./pages/DevicesPage"
+import DevicesPage from "./pages/DevicesPage"
 import ProtectedRoute from "./components/layout/ProtectedRoute"
 import CreateDevicePage from "./pages/CreateDevicePage"
 import EditDevicePage from "./pages/EditDevicePage"
@@ -30,7 +30,7 @@ function App() {
       <Route path="/devices"
         element={
           <ProtectedRoute>
-            <DevciesPage />
+            <DevicesPage />
           </ProtectedRoute>
         } />
       <Route path="/devices/new"

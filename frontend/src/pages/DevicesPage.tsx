@@ -9,7 +9,7 @@ import { useAuth } from "../lib/AuthContext"
 import { getDevices, deleteDevice } from "../services/deviceService"
 import type { Device } from "../types/device"
 
-function DevciesPage() {
+function DevicesPage() {
     const { token } = useAuth()
     const [devices, setDevices] = useState<Device[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -165,4 +165,4 @@ function DevciesPage() {
     )
 }
 
-export default DevciesPage
+export default DevicesPage
