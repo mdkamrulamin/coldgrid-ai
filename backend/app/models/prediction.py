@@ -24,7 +24,7 @@ class Prediction(Base):
     # 25-49 -> medium
     # 50-74 -> high
     # 75-100 -> critical
-    risk_score = Mapped[int] = mapped_column(Integer, default=0)
+    risk_score: Mapped[int] = mapped_column(Integer, default=0)
     summary: Mapped[str] = mapped_column(Text) # Short rule-based summary of the current device risk.
     
     # Battery prediction fields.
