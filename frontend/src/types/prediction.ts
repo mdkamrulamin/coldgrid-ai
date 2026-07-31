@@ -28,5 +28,5 @@ export type Prediction = {
     activeAlertCount: number
     criticalAlertCount: number
     offlineAlertActive: boolean
-    created: string
+    createdAt: string
 }
