@@ -41,10 +41,10 @@ def get_risk_level(risk_score: int) -> str:
 
 def get_recent_telemetry(db: Session, device_id: int) -> list[Telemetry]:
     # Fetch newest readings first from the database.
-    newest_first_readings = [
+    newest_first_readings = (
         db.query(Telemetry).filter(Telemetry.device_id == device_id)
         .order_by(Telemetry.timestamp.desc()).limit(RECENT_TELEMETRY_LIMIT).all()
-    ]
+    )
     # Reverse so calculations go from old to new.
     return list(reversed(newest_first_readings))
 
@@ -58,8 +58,8 @@ def get_active_alerts(db: Session, device_id: int) -> list[Alert]:
 
 def calculate_hours_between(older_reading: Telemetry, newer_reading: Telemetry) -> float:
     older_timestamp = ensure_aware_utc(older_reading.timestamp)
-    newer_timerstamp = ensure_aware_utc(newer_reading.timestamp)
-    seconds = (newer_timerstamp - older_timestamp).total_seconds()
+    newer_timestamp = ensure_aware_utc(newer_reading.timestamp)
+    seconds = (newer_timestamp - older_timestamp).total_seconds()
     
     if seconds <= 0:
         return 0
@@ -103,7 +103,7 @@ def calculate_battery_prediction(device: Device, readings: list[Telemetry]) -> d
     if current_battery <= battery_threshold:
         estimated_hours = 0.0
         message = (
-            f"Batter is already below the threshold of "
+            f"Battery is already below the threshold of "
             f"{battery_threshold}%."
         )
     elif drain_rate_per_hour <= 0:
@@ -184,7 +184,7 @@ def calculate_temperature_prediction(device: Device, readings: list[Telemetry]) 
             f"{estimated_hours:.2f} hours if current trend continues."
         )
     elif change_rate_per_hour < 0:
-        estimated_hours = (current_temperature - min) / abs(change_rate_per_hour)
+        estimated_hours = (current_temperature - min_temperature) / abs(change_rate_per_hour)
         direction = "low"
         message = (
             f"Temperature may fall below {min_temperature}°C in "
