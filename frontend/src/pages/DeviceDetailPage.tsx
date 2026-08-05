@@ -17,6 +17,9 @@ import TelemetryLineChart from "../components/charts/TelemetryLineChart"
 import type { Device } from "../types/device"
 import type { TelemetryReading } from "../types/telemetry"
 import type { Alert } from "../types/alert"
+import DevicePredictionCard from "../components/devices/DevicePredictionCard"
+import { getLatestDevicePrediction, runDevicePrediction } from "../services/predictionService"
+import type { Prediction } from "../types/prediction"
 
 
 
@@ -31,9 +34,12 @@ function DeviceDetailPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null)
+    const [prediction, setPrediction] = useState<Prediction | null>(null)
+    const [isPredictionLoading, setIsPredictionLoading] = useState(false)
+    const [isRunningPrediction, setIsRunningPrediction] = useState(false)
 
     useEffect(() => {
-        async function loadDeviceDetails() {
+        async function loadDeviceDetails(options = { showPredictionLoader: false }) {
             if (!token || !deviceId) {
                 return
             }
@@ -57,6 +63,23 @@ function DeviceDetailPage() {
                 const alertList = await getDeviceAlerts(selectedDevice.deviceId, token)
                 setAlerts(alertList)
 
+                // Load latest prediction using the public device UID.
+                // This is separated because a device may not have any prediction yet.
+                if (options.showPredictionLoader) {
+                    setIsPredictionLoading(true)
+                }
+
+                try {
+                    const latestPrediction = await getLatestDevicePrediction(selectedDevice.deviceId, token)
+                    setPrediction(latestPrediction)
+                } catch {
+                    setPrediction(null)
+                } finally {
+                    if (options.showPredictionLoader) {
+                        setIsPredictionLoading(false)
+                    }
+                }
+
                 setLastRefreshedAt(new Date())
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Unable to load device details.'
@@ -67,11 +90,11 @@ function DeviceDetailPage() {
         }
 
         //Load device details immediately when page opens.
-        loadDeviceDetails()
+        loadDeviceDetails({ showPredictionLoader: true })
 
         //Refresh every 5 seconds.
         const intervalId = window.setInterval(() => {
-            loadDeviceDetails()
+            loadDeviceDetails({ showPredictionLoader: false })
         }, 5000)
 
         return () => {
@@ -115,6 +138,26 @@ function DeviceDetailPage() {
         } finally {
             setIsResolvingAlertId(null)
         }
+    }
+
+    async function handleRunPrediction() {
+        if (!token || !device) {
+            return
+        }
+
+        try {
+            setIsRunningPrediction(true)
+            setErrorMessage(null)
+
+            const newPrediction = await runDevicePrediction(device.deviceId, token)
+            setPrediction(newPrediction)
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unable to run prediction.'
+            setErrorMessage(message)
+        } finally {
+            setIsRunningPrediction(false)
+        }
+        
     }
 
 
@@ -246,6 +289,14 @@ function DeviceDetailPage() {
                                 </div>
                             )}
                         </Card>
+
+                        <DevicePredictionCard
+                            prediction={prediction}
+                            isLoading={isPredictionLoading}
+                            isRunning={isRunningPrediction}
+                            onRunPrediction={handleRunPrediction}
+                        />
+
                         {latestTelemetry ? (
                             <>
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
