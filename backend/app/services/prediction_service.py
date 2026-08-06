@@ -27,6 +27,46 @@ def round_or_none(value: float | None, digits: int = 2) -> float | None:
     
     return round(value, digits)
 
+def pluralize(value: int, unit: str) -> str:
+    if value == 1:
+        return f"{value} {unit}"
+    return f"{value} {unit}s"
+
+def format_duration_from_hours(hours: float) -> str:
+    # 0.04 hours -> 2 minutes 24 seconds
+    # 1.5 hours  -> 1 hour 30 minutes
+    # 28 hours   -> 1 day 4 hours
+    # 800 hours  -> 1 month 3 days
+    total_seconds = max(0, int(round(hours * 3600)))
+    if total_seconds == 0:
+        return "less than 1 second"
+    units = [
+        ("year", 365 * 24 * 60 * 60),
+        ("month", 30 * 24 * 60 * 60),
+        ("day", 24 * 60 * 60),
+        ("hour", 60 * 60),
+        ("minute", 60),
+        ("second", 1),
+    ]
+    
+    parts: list[str] = []
+    remaining_seconds = total_seconds
+    
+    for unit_name, unit_seconds in units:
+        value = remaining_seconds // unit_seconds
+        
+        if value == 0:
+            continue
+        
+        parts.append(pluralize(value, unit_name))
+        remaining_seconds = remaining_seconds % unit_seconds
+        
+        # Show only the two biggest useful units.
+        # Example: 1 day 4 hours, not 1 day 4 hours 12 minutes 3 seconds.
+        if len(parts) == 2:
+            break
+    return " ".join(parts)
+
 def get_risk_level(risk_score: int) -> str:
     if risk_score <= LOW_RISK_MAX:
         return "low"
@@ -113,9 +153,10 @@ def calculate_battery_prediction(device: Device, readings: list[Telemetry]) -> d
         )        
     else:
         estimated_hours = (current_battery - battery_threshold) / drain_rate_per_hour
+        readable_duration = format_duration_from_hours(estimated_hours)
         message = (
             f"Battery may fall below {battery_threshold}% in "
-            f"{estimated_hours:.2f} hours if current drain continues."
+            f"{readable_duration} if current drain continues."
         )
     return {
         "battery_current_level": current_battery,
@@ -179,16 +220,18 @@ def calculate_temperature_prediction(device: Device, readings: list[Telemetry]) 
     elif change_rate_per_hour > 0:
         estimated_hours = (max_temperature - current_temperature) / change_rate_per_hour
         direction = "high"
+        readable_duration = format_duration_from_hours(estimated_hours)
         message = (
             f"Temperature may exceed {max_temperature}°C in "
-            f"{estimated_hours:.2f} hours if current trend continues."
+            f"{readable_duration} if current trend continues."
         )
     elif change_rate_per_hour < 0:
         estimated_hours = (current_temperature - min_temperature) / abs(change_rate_per_hour)
         direction = "low"
+        readable_duration = format_duration_from_hours(estimated_hours)
         message = (
             f"Temperature may fall below {min_temperature}°C in "
-            f"{estimated_hours:.2f} hours if current trend continues."
+            f"{readable_duration} if current trend continues."
         )
     else:
         message = "Temperature is stable based on recent telemetry."
