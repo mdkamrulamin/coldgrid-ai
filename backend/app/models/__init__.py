@@ -4,3 +4,4 @@ from app.models.device import Device
 from app.models.telemetry import Telemetry
 from app.models.alert import Alert
 from app.models.prediction import Prediction
+from app.models.ai_summary import AISummary
