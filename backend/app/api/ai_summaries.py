@@ -59,6 +59,10 @@ def generate_device_ai_summart(device_uid: str, db: Session = Depends(get_db), c
         device=device,
     )
 
+@router.get(
+    "/devices/{device_uid}/ai-summary/latest",
+    response_model=AISummaryResponse,
+)
 def get_latest_device_ai_summary(device_uid: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     device = get_owned_device_by_uid(db=db, device_uid=device_uid, current_user=current_user)
     ai_summary = (

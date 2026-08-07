@@ -225,7 +225,7 @@ def generate_summary_text(
     
 def generate_ai_summary_for_device(db: Session, device: Device) -> AISummary:
     end_at = utc_now()
-    start_at = end_at = timedelta(hours=SUMMARY_WINDOW_HOURS)
+    start_at = end_at - timedelta(hours=SUMMARY_WINDOW_HOURS)
     
     telemetry_readings = get_telemetry_for_summary(
         db=db,
