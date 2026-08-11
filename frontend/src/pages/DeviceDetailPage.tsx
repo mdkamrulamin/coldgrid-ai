@@ -20,6 +20,9 @@ import type { Alert } from "../types/alert"
 import DevicePredictionCard from "../components/devices/DevicePredictionCard"
 import { getLatestDevicePrediction, runDevicePrediction } from "../services/predictionService"
 import type { Prediction } from "../types/prediction"
+import DeviceAISummaryCard from "../components/devices/DeviceAISummaryCard"
+import { generateDeviceAISummary, getLatestDeviceAISummary } from "../services/aiSummaryService"
+import type { AISummary } from "../types/aiSummary"
 
 
 
@@ -34,12 +37,18 @@ function DeviceDetailPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null)
+    
     const [prediction, setPrediction] = useState<Prediction | null>(null)
     const [isPredictionLoading, setIsPredictionLoading] = useState(false)
     const [isRunningPrediction, setIsRunningPrediction] = useState(false)
 
+    const [aiSummary, setAiSummary] = useState<AISummary | null>(null)
+    const [isAiSummaryLoading, setIsAiSummaryLoading] = useState(false)
+    const [isGeneratingAiSummary, setIsGeneratingAiSummary] = useState(false)
+    const [aiSummaryErrorMessage, setAiSummaryErrorMessage] = useState<string | null>(null)
+
     useEffect(() => {
-        async function loadDeviceDetails(options = { showPredictionLoader: false }) {
+        async function loadDeviceDetails(options = { showPredictionLoader: false, showAiSummaryLoader: false }) {
             if (!token || !deviceId) {
                 return
             }
@@ -80,6 +89,22 @@ function DeviceDetailPage() {
                     }
                 }
 
+                // Load latest ai summary.
+                if (options.showAiSummaryLoader) {
+                    setIsAiSummaryLoading(true)
+                }
+                try {
+                    const latestAiSummary = await getLatestDeviceAISummary(selectedDevice.deviceId, token)
+                    setAiSummary(latestAiSummary)
+                    setAiSummaryErrorMessage(null)
+                } catch {
+                    setAiSummary(null)
+                } finally {
+                    if (options.showAiSummaryLoader) {
+                        setIsAiSummaryLoading(false)
+                    }
+                }
+
                 setLastRefreshedAt(new Date())
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Unable to load device details.'
@@ -90,11 +115,11 @@ function DeviceDetailPage() {
         }
 
         //Load device details immediately when page opens.
-        loadDeviceDetails({ showPredictionLoader: true })
+        loadDeviceDetails({ showPredictionLoader: true, showAiSummaryLoader: true })
 
         //Refresh every 5 seconds.
         const intervalId = window.setInterval(() => {
-            loadDeviceDetails({ showPredictionLoader: false })
+            loadDeviceDetails({ showPredictionLoader: false, showAiSummaryLoader: false })
         }, 5000)
 
         return () => {
@@ -158,6 +183,24 @@ function DeviceDetailPage() {
             setIsRunningPrediction(false)
         }
         
+    }
+
+    async function handleGenerateAiSummary() {
+        if (!token || !device) {
+            return
+        }
+        try {
+            setIsGeneratingAiSummary(true)
+            setAiSummaryErrorMessage(null)
+
+            const newAiSummary = await generateDeviceAISummary(device.deviceId, token)
+            setAiSummary(newAiSummary)
+        } catch(error) {
+            const message = error instanceof Error ? error.message : 'Unable to generate AI summary.'
+            setAiSummaryErrorMessage(message)
+        } finally {
+            setIsGeneratingAiSummary(false)
+        }
     }
 
 
@@ -296,6 +339,14 @@ function DeviceDetailPage() {
                             isRunning={isRunningPrediction}
                             onRunPrediction={handleRunPrediction}
                         />
+
+                        <DeviceAISummaryCard
+                            aiSummary={aiSummary}
+                            isLoading={isAiSummaryLoading}
+                            isGenerating={isGeneratingAiSummary}
+                            errorMessage={aiSummaryErrorMessage}
+                            onGenerateSummary={handleGenerateAiSummary}
+                        ></DeviceAISummaryCard>
 
                         {latestTelemetry ? (
                             <>
