@@ -13,6 +13,7 @@ import { getAlerts } from "../services/alertService"
 import type { Alert } from "../types/alert"
 import type { Device } from "../types/device"
 import type { TelemetryReading } from "../types/telemetry"
+import DashboardSkeleton from "../components/dashboard/DashboardSkeleton"
 
 type DeviceWithLatestTelemetry = {
     device: Device
@@ -120,11 +121,7 @@ function DashboardPage() {
 
             <div className="mt-8">
                 <FormError message={errorMessage} />
-                {isLoading && (
-                    <Card>
-                        <p className="text-sm text-slate-600">Loading dashboard...</p>
-                    </Card>
-                )}
+                {isLoading && <DashboardSkeleton />}
                 {!isLoading && (
                     <>
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
