@@ -144,6 +144,10 @@ function DeviceDetailPage() {
     const activeAlerts = alerts.filter((alert) => alert.status === 'active')
     const resolvedAlerts = alerts.filter((alert) => alert.status === 'resolved')
 
+    const displayStatus = activeAlerts.some(
+        (alert) => alert.alertType === 'device_offline',
+    ) ? 'offline' : latestTelemetry?.status
+
     function formatAlertType(alertType: string) {
         return alertType.split('_').map((word) => word[0].toUpperCase() + word.slice(1)).join(' ')
     }
@@ -346,7 +350,7 @@ function DeviceDetailPage() {
                             isGenerating={isGeneratingAiSummary}
                             errorMessage={aiSummaryErrorMessage}
                             onGenerateSummary={handleGenerateAiSummary}
-                        ></DeviceAISummaryCard>
+                        />
 
                         {latestTelemetry ? (
                             <>
@@ -386,7 +390,7 @@ function DeviceDetailPage() {
                                                 {new Date(latestTelemetry.timestamp).toLocaleTimeString()}
                                             </p>
                                         </div>
-                                        <StatusBadge status={latestTelemetry.status} />
+                                        {displayStatus && <StatusBadge status={displayStatus} />}
                                     </div>
                                 </Card>
                                 <Card>
