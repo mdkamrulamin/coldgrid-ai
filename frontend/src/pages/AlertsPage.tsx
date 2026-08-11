@@ -11,6 +11,7 @@ import Button from "../components/ui/Button"
 import { useAuth } from "../lib/AuthContext"
 import { getAlerts, resolveAlert } from "../services/alertService"
 import type { Alert, AlertSeverity, AlertStatus } from "../types/alert"
+import AlertsPageSkeleton from "../components/alerts/AlertsPageSkeleton"
 
 function formatAlertType(alertType: string) {
     return alertType.split('_')
@@ -161,9 +162,7 @@ function AlertsPage() {
                 </div>
                 <div className="mt-5">
                     <FormError message={errorMessage} />
-                    {isLoading && (
-                        <p className="text-sm text-slate-600">Loading alerts...</p>
-                    )}
+                    {isLoading && <AlertsPageSkeleton />}
                     {!isLoading && alerts.length === 0 && (
                         <p className="text-sm text-slate-600">
                             No alerts found for the selected filter.
