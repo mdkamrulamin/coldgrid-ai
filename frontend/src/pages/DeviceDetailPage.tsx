@@ -23,6 +23,7 @@ import type { Prediction } from "../types/prediction"
 import DeviceAISummaryCard from "../components/devices/DeviceAISummaryCard"
 import { generateDeviceAISummary, getLatestDeviceAISummary } from "../services/aiSummaryService"
 import type { AISummary } from "../types/aiSummary"
+import DeviceDetailSkeleton from "../components/devices/DeviceDetailSkeleton"
 
 
 
@@ -229,11 +230,7 @@ function DeviceDetailPage() {
             )}
             <div className="mt-8">
                 <FormError message={errorMessage} />
-                {isLoading && (
-                    <Card>
-                        <p className="text-sm text-slate-600">Loading device details...</p>
-                    </Card>
-                )}
+                {isLoading && <DeviceDetailSkeleton />}
                 {!isLoading && device && (
                     <div className="space-y-8">
                         <Card>
