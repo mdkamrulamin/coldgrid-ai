@@ -24,7 +24,7 @@ import DeviceAISummaryCard from "../components/devices/DeviceAISummaryCard"
 import { generateDeviceAISummary, getLatestDeviceAISummary } from "../services/aiSummaryService"
 import type { AISummary } from "../types/aiSummary"
 import DeviceDetailSkeleton from "../components/devices/DeviceDetailSkeleton"
-
+import EmptyState from "../components/ui/EmptyState"
 
 
 function DeviceDetailPage() {
@@ -292,9 +292,12 @@ function DeviceDetailPage() {
                                 </span>
                             </div>
                             {activeAlerts.length === 0 ? (
-                                <p className="mt-5 text-sm text-slate-600">
-                                    No active alerts for this device.
-                                </p>
+                                <div className="mt-5">
+                                    <EmptyState
+                                        title="No active alerts"
+                                        description="This device does not currently have any active system health issues."
+                                    />
+                                </div>
                             ) : (
                                 <div className="mt-5 space-y-4">
                                     {activeAlerts.map((alert) => (
@@ -469,12 +472,10 @@ function DeviceDetailPage() {
                             </>
                         ) : (
                             <Card>
-                                <h2 className="text-lg font-semibold text-slate-900">
-                                    No telemetry yet
-                                </h2>
-                                <p className="mt-2 text-sm text-slate-600">
-                                    Start the simulator for this device to see live readings, charts, and recent telemetry.
-                                </p>
+                                <EmptyState
+                                    title="No telemetry yet"
+                                    description="Start the simulator for this device to see live readings, charts, and recent telemetry."
+                                 />
                             </Card>
                         )}
                         <Card>
@@ -482,9 +483,12 @@ function DeviceDetailPage() {
                                 Resolved alert history
                             </h2>
                             {resolvedAlerts.length === 0 ? (
-                                <p className="mt-5 text-sm text-slate-600">
-                                    No resolved alerts yet.
-                                </p>
+                                <div className="mt-5">
+                                    <EmptyState
+                                        title="No resolved alerts yet"
+                                        description="Resolved alerts will appear here after active alerts are cleared."
+                                    />
+                                </div>
                             ) : (
                                 <div className="mt-5 space-y-3">
                                     {resolvedAlerts.slice(0, 5).map((alert) => (
