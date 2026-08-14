@@ -12,6 +12,7 @@ import { useAuth } from "../lib/AuthContext"
 import { getAlerts, resolveAlert } from "../services/alertService"
 import type { Alert, AlertSeverity, AlertStatus } from "../types/alert"
 import AlertsPageSkeleton from "../components/alerts/AlertsPageSkeleton"
+import EmptyState from "../components/ui/EmptyState"
 
 function formatAlertType(alertType: string) {
     return alertType.split('_')
@@ -164,9 +165,10 @@ function AlertsPage() {
                     <FormError message={errorMessage} />
                     {isLoading && <AlertsPageSkeleton />}
                     {!isLoading && alerts.length === 0 && (
-                        <p className="text-sm text-slate-600">
-                            No alerts found for the selected filter.
-                        </p>
+                        <EmptyState
+                            title="No alerts found"
+                            description="There are no alerts matching the selected filters." 
+                        />
                     )}
                     {!isLoading && alerts.length > 0 && (
                         <div className="overflow-x-auto">
