@@ -8,6 +8,8 @@ import FormError from "../components/ui/FormError"
 import { useAuth } from "../lib/AuthContext"
 import { getDevices, deleteDevice } from "../services/deviceService"
 import type { Device } from "../types/device"
+import EmptyState from "../components/ui/EmptyState"
+
 
 function DevicesPage() {
     const { token } = useAuth()
@@ -84,12 +86,18 @@ function DevicesPage() {
                 )}
                 {!isLoading && devices.length === 0 && (
                     <Card>
-                        <h2 className="text-lg font-semibold text-slate-900">
-                            No devices yet
-                        </h2>
-                        <p className="mt-2 text-sm text-slate-600">
-                            Once you create a device, it will appear here.
-                        </p>
+                        <EmptyState
+                            title="No devices yet"
+                            description="Create your first cold storage device to start monitoring telemetry, alerts, predictions, and AI summaries."
+                            action={
+                                <Link
+                                    to="/devices/new"
+                                    className="inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700"
+                                >
+                                    Add device
+                                </Link>
+                            }
+                        />
                     </Card>
                 )}
                 {!isLoading && devices.length > 0 && (
