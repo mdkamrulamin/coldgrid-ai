@@ -309,7 +309,7 @@ def calculate_risk_score(
             reasons.append("Temperature may cross threshold within 1 hour.")
         elif estimated_temperature_hours <= 4:
             risk_score += 15
-            reasons.append("Temperature may cross threshold within 4 hour.")
+            reasons.append("Temperature may cross threshold within 4 hours.")
             
     if latest_reading:
         if latest_reading.cooling_load > 0:
@@ -353,7 +353,7 @@ def run_prediction_for_device(db: Session, device: Device) -> Prediction:
             risk_level=risk_level,
             risk_score=risk_score,
             summary =(
-                "No telemetry is available for this device."
+                "No telemetry is available for this device. "
                 "Prediction accuracy is limited."
             ),
             active_alert_count=active_alert_count,

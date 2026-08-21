@@ -24,6 +24,6 @@ export type CreateDeviceRequest = {
 }           // Request body for POST /devices.
 
 // Response body from POST /devices. It includes apiKey only once after device creation.
-export type CreateDeviceaResponse = Device & {
+export type CreateDeviceResponse = Device & {
     apiKey: string
 }

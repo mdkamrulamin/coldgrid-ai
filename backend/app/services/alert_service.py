@@ -138,7 +138,7 @@ def evaluate_telemetry_alert_rules(db: Session, device: Device, current_telemetr
         should_be_active=current_telemetry.humidity < device.min_humidity,
         severity="medium",
         message=(
-            f"Humidity is too high: {current_telemetry.humidity}%. Minimum allowed is {device.min_humidity}%."
+            f"Humidity is too low: {current_telemetry.humidity}%. Minimum allowed is {device.min_humidity}%."
         ),
     )
     

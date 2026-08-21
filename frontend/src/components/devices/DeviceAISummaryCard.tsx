@@ -65,7 +65,7 @@ function DeviceAISummaryCard({ aiSummary, isLoading, isGenerating, errorMessage,
                         </p>
                     </div>
                     <div>
-                        <p className="text=sm font-medium text-slate-900">Summary</p>
+                        <p className="text-sm font-medium text-slate-900">Summary</p>
                         <p className="mt-2 text-sm leading-6 text-slate-600">
                             {aiSummary.summary}
                         </p>

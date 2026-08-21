@@ -8,18 +8,18 @@ import Card from "../components/ui/Card"
 import CopyableCodeField from "../components/ui/CopyableCodeField"
 import { useAuth } from "../lib/AuthContext"
 import { createDevice } from "../services/deviceService"
-import type { CreateDeviceRequest, CreateDeviceaResponse } from "../types/device"
+import type { CreateDeviceRequest, CreateDeviceResponse } from "../types/device"
 
 function CreateDevicePage() {
     const { token } = useAuth()
 
-    const [createdDevice, setCreatedDevice] = useState<CreateDeviceaResponse | null>(null)
+    const [createdDevice, setCreatedDevice] = useState<CreateDeviceResponse | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
     async function handleCreateDevice(payload: CreateDeviceRequest) {
         if (!token) {
-            setErrorMessage('You mush be logged in to create a device.')
+            setErrorMessage('You must be logged in to create a device.')
             return
         }
         try {
@@ -52,7 +52,7 @@ function CreateDevicePage() {
                     Back to devices
                 </Link>
             </div>
-            <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_420px">
+            <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_420px]">
                 <Card>
                     <DeviceForm 
                         submitLabel="Create device"

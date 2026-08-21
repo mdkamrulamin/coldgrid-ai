@@ -47,7 +47,7 @@ def build_ai_summary_response(ai_summary: AISummary, device: Device) -> dict:
     "/devices/{device_uid}/ai-summary",
     response_model=AISummaryResponse,
 )
-def generate_device_ai_summart(device_uid: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def generate_device_ai_summary(device_uid: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     device = get_owned_device_by_uid(db=db, device_uid=device_uid, current_user=current_user)
     ai_summary = generate_ai_summary_for_device(db=db, device=device)
     

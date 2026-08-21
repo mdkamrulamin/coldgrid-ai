@@ -1,5 +1,5 @@
 import { apiRequest } from "./apiClient"
-import type { CreateDeviceRequest, CreateDeviceaResponse, Device, } from "../types/device"
+import type { CreateDeviceRequest, CreateDeviceResponse, Device, } from "../types/device"
 
 //Fetch all devices owned by the logged-in user.
 export function getDevices(token: string) {
@@ -19,7 +19,7 @@ export function getDevice(deviceId: number, token: string) {
 
 //Create a new device. The backend will reutnr the raw API key once.
 export function createDevice(payload: CreateDeviceRequest, token: string) {
-    return apiRequest<CreateDeviceaResponse>('/devices', {
+    return apiRequest<CreateDeviceResponse>('/devices', {
         method: 'POST',
         body: payload,
         token,

@@ -5,7 +5,7 @@ import FormError from "../ui/FormError"
 import TextInput from "../ui/TextInput"
 import type { CreateDeviceRequest, Device } from "../../types/device"
 
-type DeviceFromProps = {
+type DeviceFormProps = {
     initialDevice?: Device
     submitLabel: string
     isSubmitting: boolean
@@ -14,7 +14,7 @@ type DeviceFromProps = {
 }
 
 // Reusable form for both create and update a device
-function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, onSubmit, }: DeviceFromProps) {
+function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, onSubmit, }: DeviceFormProps) {
     const [name, setName] = useState(initialDevice?.name ?? '')
     const [location, setLocation] = useState(initialDevice?.location ?? '')
     const [storageType, setStorageType] = useState(initialDevice?.storageType ?? 'Cold room')
