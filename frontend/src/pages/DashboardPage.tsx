@@ -4,7 +4,6 @@ import { Link } from "react-router-dom"
 import PageHeader from "../components/layout/PageHeader"
 import PageLayout from "../components/layout/PageLayout"
 import Card from "../components/ui/Card"
-import FormError from "../components/ui/FormError"
 import StatusBadge from "../components/ui/StatusBadge"
 import { useAuth } from "../lib/AuthContext"
 import { getDevices } from "../services/deviceService"
@@ -15,6 +14,7 @@ import type { Device } from "../types/device"
 import type { TelemetryReading } from "../types/telemetry"
 import DashboardSkeleton from "../components/dashboard/DashboardSkeleton"
 import EmptyState from "../components/ui/EmptyState"
+import PageError from "../components/ui/PageError"
 
 type DeviceWithLatestTelemetry = {
     device: Device
@@ -121,7 +121,7 @@ function DashboardPage() {
             )}
 
             <div className="mt-8">
-                <FormError message={errorMessage} />
+                <PageError message={errorMessage} />
                 {isLoading && <DashboardSkeleton />}
                 {!isLoading && (
                     <>

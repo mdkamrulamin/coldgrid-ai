@@ -4,7 +4,6 @@ import { Link, useParams } from "react-router-dom"
 import PageHeader from "../components/layout/PageHeader"
 import PageLayout from "../components/layout/PageLayout"
 import Card from "../components/ui/Card"
-import FormError from "../components/ui/FormError"
 import MetricCard from "../components/ui/MetricCard"
 import StatusBadge from "../components/ui/StatusBadge"
 import Button from "../components/ui/Button"
@@ -25,6 +24,7 @@ import { generateDeviceAISummary, getLatestDeviceAISummary } from "../services/a
 import type { AISummary } from "../types/aiSummary"
 import DeviceDetailSkeleton from "../components/devices/DeviceDetailSkeleton"
 import EmptyState from "../components/ui/EmptyState"
+import PageError from "../components/ui/PageError"
 
 
 function DeviceDetailPage() {
@@ -229,7 +229,7 @@ function DeviceDetailPage() {
                 </p>
             )}
             <div className="mt-8">
-                <FormError message={errorMessage} />
+                <PageError message={errorMessage} />
                 {isLoading && <DeviceDetailSkeleton />}
                 {!isLoading && device && (
                     <div className="space-y-8">

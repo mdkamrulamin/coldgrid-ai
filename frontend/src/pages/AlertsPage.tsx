@@ -4,7 +4,6 @@ import { Link } from "react-router-dom"
 import PageHeader from "../components/layout/PageHeader"
 import PageLayout from "../components/layout/PageLayout"
 import Card from "../components/ui/Card"
-import FormError from "../components/ui/FormError"
 import SeverityBadge from "../components/ui/SeverityBadge"
 import StatusBadge from "../components/ui/StatusBadge"
 import Button from "../components/ui/Button"
@@ -13,6 +12,7 @@ import { getAlerts, resolveAlert } from "../services/alertService"
 import type { Alert, AlertSeverity, AlertStatus } from "../types/alert"
 import AlertsPageSkeleton from "../components/alerts/AlertsPageSkeleton"
 import EmptyState from "../components/ui/EmptyState"
+import PageError from "../components/ui/PageError"
 
 function formatAlertType(alertType: string) {
     return alertType.split('_')
@@ -162,7 +162,7 @@ function AlertsPage() {
                     </div>
                 </div>
                 <div className="mt-5">
-                    <FormError message={errorMessage} />
+                    <PageError message={errorMessage} />
                     {isLoading && <AlertsPageSkeleton />}
                     {!isLoading && alerts.length === 0 && (
                         <EmptyState
