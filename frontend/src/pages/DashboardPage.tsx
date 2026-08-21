@@ -14,6 +14,7 @@ import type { Alert } from "../types/alert"
 import type { Device } from "../types/device"
 import type { TelemetryReading } from "../types/telemetry"
 import DashboardSkeleton from "../components/dashboard/DashboardSkeleton"
+import EmptyState from "../components/ui/EmptyState"
 
 type DeviceWithLatestTelemetry = {
     device: Device
@@ -169,9 +170,18 @@ function DashboardPage() {
 
                             {devicesWithTelemetry.length === 0 ? (
                                 <Card className="mt-4">
-                                    <p className="text-sm text-slate-600">
-                                        No devices found. Create a device first to start monitoring.
-                                    </p>
+                                    <EmptyState
+                                        title="No devices yet"
+                                        description="Create your first cold storage device to start monitoring telemetry, alerts, predictions, and AI summaries."
+                                        action={
+                                            <Link
+                                                to="/devices/new"
+                                                className="inline-flex rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700"
+                                            >
+                                                Add device
+                                            </Link>
+                                        }
+                                    />
                                 </Card>
                             ) : (
                                 <div className="mt-4 grid gap-4">
