@@ -1,6 +1,7 @@
-from typing import Annotated
+from typing import Annotated, Literal
+from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -21,6 +22,26 @@ from app.services.alert_service import evaluate_telemetry_alert_rules
 router = APIRouter(
     tags=["Telemetry"],
 )
+
+TelemetryRange = Literal["latest", "1h", "6h", "24h", "7d"]
+
+def utc_now() -> datetime:
+    # Use timezone-aware UTC timestamps for consistency.
+    return datetime.now(timezone.utc)
+
+def get_range_start_time(time_range: TelemetryRange) -> datetime | None:
+    now = utc_now()
+    
+    if time_range == "1h":
+        return now - timedelta(hours=1)
+    if time_range == "6h":
+        return now - timedelta(hours=6)
+    if time_range == "24h":
+        return now - timedelta(hours=24)
+    if time_range == "7d":
+        return now - timedelta(days=7)
+    
+    return None
 
 def build_telemetry_response(telemetry: Telemetry, device_uid: str,) -> TelemetryResponse:
     """
@@ -139,18 +160,32 @@ def create_telemetry_reading(
 )
 def list_device_telemetry(
     device_uid: str,
+    time_range: TelemetryRange = Query("latest", alias="range"),
+    limit: int = Query(200, ge=1, le=1000),
     current_user: User = Depends(get_current_user),     # JWT-authenticated user requesting access to telemetry history.
     db: Session = Depends(get_db),      # Database session used to fetch the device and telemetry records.
 ):
     """
-    Return all telemetry readings for one device owned by the logged-in user. The most recent telemetry readings are returned first.
+    Return telemetry readings for one device owned by the logged-in user.
+    By default, this returns the latest readings. Optional range filters:
+    - latest
+    - 1h
+    - 6h
+    - 24h
+    - 7d
     """
     
     device = get_owned_device_by_uid_or_404(device_uid=device_uid, current_user=current_user, db=db)
+    query = db.query(Telemetry).filter(Telemetry.device_id == device.id)
+    range_start_time = get_range_start_time(time_range)
+    
+    if range_start_time:
+        query = query.filter(Telemetry.timestamp >= range_start_time)
+    
     telemetry_records = (
-        db.query(Telemetry)
-        .filter(Telemetry.device_id == device.id).order_by(Telemetry.timestamp.desc()).all()
-    )       # Find every telemetry record belonging to this device. Newest readings are returned first.
+        query.order_by(Telemetry.timestamp.desc())
+        .limit(limit).all()
+    )
     
     # Convert database telemetry records into API responses. 
     # This ensures the API returns the public device UID instead of the internal PostgreSQL device ID.
