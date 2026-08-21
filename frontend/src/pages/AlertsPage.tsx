@@ -172,7 +172,7 @@ function AlertsPage() {
                     )}
                     {!isLoading && alerts.length > 0 && (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-slate-200 text-sm">
+                            <table className="min-w-[900px] divide-y divide-slate-200 text-sm">
                                 <thead>
                                     <tr className="text-left text-slate-500">
                                         <th className="py-3 pr-4 font-medium">Alert</th>
