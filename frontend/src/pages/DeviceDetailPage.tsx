@@ -218,7 +218,7 @@ function DeviceDetailPage() {
                 />
                 <Link
                     to="/devices"
-                    className="inline-flex rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                    className="inline-flex w-full justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 md:w-auto"
                 >
                     Back to devices
                 </Link>
@@ -380,7 +380,7 @@ function DeviceDetailPage() {
                                     />
                                 </div>
                                 <Card>
-                                    <div className="flex items-center justify-between gap-4">
+                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
                                             <h2 className="text-lg font-semibold text-slate-900">
                                                 Current status
