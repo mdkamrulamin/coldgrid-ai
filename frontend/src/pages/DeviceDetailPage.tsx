@@ -426,7 +426,7 @@ function DeviceDetailPage() {
                                         Recent telemetry
                                     </h2>
                                     <div className="mt-5 overflow-x-auto">
-                                        <table className="min-w-full divide-y divide-slate-200 text-sm">
+                                        <table className="min-w-[850px] divide-y divide-slate-200 text-sm">
                                             <thead>
                                                 <tr className="text-left text-slate-500">
                                                     <th className="py-3 pr-4 font-medium">Time</th>
