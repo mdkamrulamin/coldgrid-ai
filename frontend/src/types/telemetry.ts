@@ -1,3 +1,5 @@
+export type TelemetryRange = 'latest' | '1h' | '6h' | '24h' | '7d'
+
 export type TelemetryReading = {
     id: number
     deviceId: string
