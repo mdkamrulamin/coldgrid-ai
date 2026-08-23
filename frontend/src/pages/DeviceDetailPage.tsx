@@ -10,7 +10,7 @@ import Button from "../components/ui/Button"
 import SeverityBadge from "../components/ui/SeverityBadge"
 import { useAuth } from "../lib/AuthContext"
 import { getDevice } from "../services/deviceService"
-import { getDeviceTelemetry } from "../services/telemetryService"
+import { getDeviceTelemetry, getLatestTelemetry } from "../services/telemetryService"
 import { getDeviceAlerts, resolveAlert } from "../services/alertService"
 import TelemetryLineChart from "../components/charts/TelemetryLineChart"
 import type { Device } from "../types/device"
@@ -33,13 +33,14 @@ function DeviceDetailPage() {
     const { deviceId } = useParams()
     const [device, setDevice] = useState<Device | null>(null)
     const [telemetry, setTelemetry] = useState<TelemetryReading[]>([])
+    const [latestDeviceTelemetry, setLatestDeviceTelemetry] = useState<TelemetryReading | null>(null)
     const [telemetryRange, setTelemetryRange] = useState<TelemetryRange>('24h')
     const [alerts, setAlerts] = useState<Alert[]>([])
     const [isResolvingAlertId, setIsResolvingAlertId] = useState<number | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null)
-    
+
     const [prediction, setPrediction] = useState<Prediction | null>(null)
     const [isPredictionLoading, setIsPredictionLoading] = useState(false)
     const [isRunningPrediction, setIsRunningPrediction] = useState(false)
@@ -66,9 +67,16 @@ function DeviceDetailPage() {
                 const selectedDevice = await getDevice(numericDeviceId, token)
                 setDevice(selectedDevice)
 
+                try {
+                    const latestReading = await getLatestTelemetry(selectedDevice.deviceId, token)
+                    setLatestDeviceTelemetry(latestReading)
+                } catch {
+                    setLatestDeviceTelemetry(null)
+                }
+
                 //Load telemetry using the public device UID and selected range.
                 const readings = await getDeviceTelemetry(
-                    selectedDevice.deviceId, 
+                    selectedDevice.deviceId,
                     token,
                     {
                         range: telemetryRange,
@@ -137,12 +145,15 @@ function DeviceDetailPage() {
 
     }, [deviceId, telemetryRange, token])
 
-    const latestTelemetry = telemetry[0] ?? null //Return newest readings first.
+    const latestRangeTelemetry = telemetry[0] ?? null //Return newest readings first.
     const recentTelemetry = telemetry.slice(0, 10) //Show latest 10 readings in the table.
 
-    //Charts should read from left to right, from old to new. So reverse the reading and keep latest 30.
-    const chartData = [...telemetry].reverse().slice(-30).map((reading) => ({
-        time: new Date(reading.timestamp).toLocaleTimeString(),
+    // Charts should read from left to right, from old to new. Keep up to 200 points so historical trends are visible without overloading the chart.
+    const MAX_CHART_POINTS = 200
+    const chartTelemetry = [...telemetry].reverse().slice(-MAX_CHART_POINTS)
+
+    const chartData = chartTelemetry.map((reading) => ({
+        time: formatChartTime(reading.timestamp),
         temperature: reading.temperature,
         humidity: reading.humidity,
         batteryLevel: reading.batteryLevel,
@@ -156,18 +167,31 @@ function DeviceDetailPage() {
         label: string
         value: TelemetryRange
     }[] = [
-        { label: '1h' , value: '1h'},
-        { label: '6h' , value: '6h'},
-        { label: '24h' , value: '24h'},
-        { label: '7d' , value: '7d'},
-    ]
+            { label: '1h', value: '1h' },
+            { label: '6h', value: '6h' },
+            { label: '24h', value: '24h' },
+            { label: '7d', value: '7d' },
+        ]
 
     const displayStatus = activeAlerts.some(
         (alert) => alert.alertType === 'device_offline',
-    ) ? 'offline' : latestTelemetry?.status
+    ) ? 'offline' : latestDeviceTelemetry?.status
 
     function formatAlertType(alertType: string) {
         return alertType.split('_').map((word) => word[0].toUpperCase() + word.slice(1)).join(' ')
+    }
+
+    function formatChartTime(timestamp: string) {
+        const date = new Date(timestamp)
+
+        if (telemetryRange === '7d') {
+            return date.toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+            })
+        }
+
+        return date.toLocaleTimeString()
     }
 
     async function handleResolveAlert(alertId: number) {
@@ -204,7 +228,7 @@ function DeviceDetailPage() {
         } finally {
             setIsRunningPrediction(false)
         }
-        
+
     }
 
     async function handleGenerateAiSummary() {
@@ -217,7 +241,7 @@ function DeviceDetailPage() {
 
             const newAiSummary = await generateDeviceAISummary(device.deviceId, token)
             setAiSummary(newAiSummary)
-        } catch(error) {
+        } catch (error) {
             const message = error instanceof Error ? error.message : 'Unable to generate AI summary.'
             setAiSummaryErrorMessage(message)
         } finally {
@@ -369,64 +393,31 @@ function DeviceDetailPage() {
                             onGenerateSummary={handleGenerateAiSummary}
                         />
 
-                        <Card>
-                                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                                        <div>
-                                            <h2 className="text-lg font-semibold text-slate-900">
-                                                Historical telemetry
-                                            </h2>
-                                            <p className="mt-1 text-sm text-slate-600">
-                                                Filter charts and recent readings by time range.
-                                            </p>
-                                        </div>
-                                        <div className="grid grid-cols-4 gap-2 rounded-lg bg-slate-100 p-1">
-                                            {telemetryRangeOptions.map((option) => {
-                                                const isSelected = telemetryRange === option.value
-
-                                                return (
-                                                    <button
-                                                        key={option.value}
-                                                        type="button"
-                                                        onClick={() => setTelemetryRange(option.value)}
-                                                        className={`rounded-md px-3 py-2 text-sm font-medium transition ${
-                                                            isSelected
-                                                                ? 'bg-white text-emerald-700 shadow-sm'
-                                                                : 'text-slate-600 hover:text-slate-900' 
-                                                        }`}
-                                                    >
-                                                        {option.label}
-                                                    </button>
-                                                )
-                                            })}
-                                        </div>
-                                    </div>
-                                </Card>
-
-                        {latestTelemetry ? (
+                        {latestDeviceTelemetry ? (
                             <>
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                                     <MetricCard
                                         label="Temperature"
-                                        value={`${latestTelemetry.temperature}°C`}
+                                        value={`${latestDeviceTelemetry.temperature}°C`}
                                         helperText={`Target: ${device.minTemperature}°C to ${device.maxTemperature}°C`}
                                     />
                                     <MetricCard
                                         label="Humidity"
-                                        value={`${latestTelemetry.humidity}%`}
+                                        value={`${latestDeviceTelemetry.humidity}%`}
                                         helperText={`Target: ${device.minHumidity}% to ${device.maxHumidity}%`}
                                     />
                                     <MetricCard
                                         label="Battery"
-                                        value={`${latestTelemetry.batteryLevel}%`}
+                                        value={`${latestDeviceTelemetry.batteryLevel}%`}
                                         helperText={`Threshold: ${device.batteryThreshold}%`}
                                     />
                                     <MetricCard
                                         label="Generated power"
-                                        value={`${latestTelemetry.generatedPower} W`}
+                                        value={`${latestDeviceTelemetry.generatedPower} W`}
                                     />
                                     <MetricCard
                                         label="Cooling load"
-                                        value={`${latestTelemetry.coolingLoad} W`}
+                                        value={`${latestDeviceTelemetry.coolingLoad} W`}
                                     />
                                 </div>
                                 <Card>
@@ -437,12 +428,58 @@ function DeviceDetailPage() {
                                             </h2>
                                             <p className="mt-1 text-sm text-slate-600">
                                                 Latest reading received at{' '}
-                                                {new Date(latestTelemetry.timestamp).toLocaleTimeString()}
+                                                {new Date(latestDeviceTelemetry.timestamp).toLocaleTimeString()}
                                             </p>
                                         </div>
                                         {displayStatus && <StatusBadge status={displayStatus} />}
                                     </div>
                                 </Card>
+                            </>
+
+                        ) : (
+                            <Card>
+                                <EmptyState
+                                    title="No latest telemetry yet"
+                                    description="Start the simulator for this device to generate the first telemetry reading."
+                                />
+                            </Card>
+
+                        )}
+
+                        <Card>
+                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <h2 className="text-lg font-semibold text-slate-900">
+                                        Historical telemetry
+                                    </h2>
+                                    <p className="mt-1 text-sm text-slate-600">
+                                        Filter charts and recent readings by time range.
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-4 gap-2 rounded-lg bg-slate-100 p-1">
+                                    {telemetryRangeOptions.map((option) => {
+                                        const isSelected = telemetryRange === option.value
+
+                                        return (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                onClick={() => setTelemetryRange(option.value)}
+                                                className={`rounded-md px-3 py-2 text-sm font-medium transition ${isSelected
+                                                    ? 'bg-white text-emerald-700 shadow-sm'
+                                                    : 'text-slate-600 hover:text-slate-900'
+                                                    }`}
+                                            >
+                                                {option.label}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        </Card>
+
+                        {latestRangeTelemetry ? (
+                            <>
                                 <Card>
                                     <h2 className="text-lg font-semibold text-slate-900">
                                         Telemetry charts
@@ -473,7 +510,7 @@ function DeviceDetailPage() {
 
                                 <Card>
                                     <h2 className="text-lg font-semibold text-slate-900">
-                                        Recent telemetry
+                                        Recent telemetry in selected range
                                     </h2>
                                     <div className="mt-5 overflow-x-auto">
                                         <table className="min-w-[850px] divide-y divide-slate-200 text-sm">
@@ -523,9 +560,9 @@ function DeviceDetailPage() {
                         ) : (
                             <Card>
                                 <EmptyState
-                                    title="No telemetry yet"
-                                    description="No telemetry was found for the selected time range. Start the simulator or choose a wider range to see readings and charts."
-                                 />
+                                    title="No telemetry found"
+                                    description="No telemetry was found for the selected time range. Choose a wider range or run the simulator to generate new readings."
+                                />
                             </Card>
                         )}
                         <Card>
