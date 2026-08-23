@@ -11,6 +11,7 @@ from app.api.telemetry import router as telemetry_router
 from app.api.ai_summaries import router as ai_summary_router
 from app.api.alerts import router as alerts_router
 from app.api.predictions import router as predictions_router
+from app.api.simulations import router as simulation_router
 from app.services.offline_monitor import run_offline_monitor
 
 
@@ -56,7 +57,8 @@ app.include_router(devices_router)  # Register device management routes.
 app.include_router(telemetry_router)    # Register telemetry ingestion and reading routes.
 app.include_router(alerts_router)       #Register alert routes.
 app.include_router(predictions_router)  #Register prediction routes.
-app.include_router(ai_summary_router)  
+app.include_router(ai_summary_router)
+app.include_router(simulation_router)  
 
 #Simple health checkpoint used to confrim that the backend server is running properly
 @app.get("/health")

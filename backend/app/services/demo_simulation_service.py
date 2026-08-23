@@ -137,6 +137,10 @@ def run_demo_simulation(
             current_telemetry=telemetry, 
             previous_telemetry=previous_telemetry
         )
+        
+        # Flush after each simulated reading so duplicate-alert checks can see alerts created earlier in this same batch request.
+        db.flush()
+        
         previous_telemetry = telemetry
         created_count += 1
     
