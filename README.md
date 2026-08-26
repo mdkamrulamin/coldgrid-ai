@@ -2,7 +2,7 @@
 
 **Real-Time Renewable Cold Storage Monitoring & Prediction Platform**
 
-ColdGrid AI is a full-stack software platform for monitoring renewable-powered cold storage systems. It ingests real-time telemetry from simulated IoT devices, tracks energy and storage conditions, detects operational risks, predicts potential failures, and generates AI-style operational summaries for decision support.
+ColdGrid AI is a full-stack software platform for monitoring renewable-powered cold storage systems. It ingests telemetry from simulated IoT devices, tracks energy and storage conditions, detects operational risks, predicts potential failures, and generates AI-style operational summaries for decision support.
 
 The MVP uses simulated devices instead of physical hardware, making it possible to build, test, and demonstrate the system without requiring sensors, batteries, turbines, or university lab equipment.
 
@@ -14,9 +14,14 @@ Cold storage systems are important for food preservation, agriculture, healthcar
 
 ColdGrid AI acts as the software intelligence layer for these systems.
 
-It allows users to create and monitor cold-storage devices, receive live telemetry, view system health, detect alerts, predict risk, and generate plain-English operational summaries.
+It allows users to create and monitor cold-storage devices, receive telemetry, view system health, detect alerts, predict risk, and generate plain-English operational summaries.
 
-The first version follows a software-first digital twin approach, where a Python simulator sends realistic telemetry data to the backend as if it were coming from real hardware.
+The first version follows a software-first digital twin approach. Telemetry can be generated in two ways:
+
+- Through a browser-based demo simulation feature
+- Through a Python simulator that sends telemetry to the backend like a real IoT device
+
+This makes the platform easy to demonstrate as a portfolio project while keeping the architecture realistic for future hardware integration.
 
 ---
 
@@ -117,9 +122,33 @@ Telemetry includes:
 
 Telemetry ingestion uses the device UID and device API key.
 
+### Browser-Based Demo Simulation
+
+ColdGrid AI includes a browser-based demo simulation feature.
+
+Users can generate demo telemetry directly from the device detail page without installing Python, copying the project locally, or manually running terminal commands.
+
+Supported browser simulation scenarios:
+
+- Normal operation
+- Battery drain
+- Temperature rise
+- Low power generation
+- Cooling failure
+- Sensor failure
+- Power spike
+
+Users can choose:
+
+- Scenario
+- Time range
+- Number of readings
+
+This makes the project easier to test as a live portfolio demo. A visitor can create a device, generate telemetry, trigger alerts, view historical charts, run predictions, and generate an AI-style summary entirely from the web interface.
+
 ### Python Device Simulator
 
-A Python simulator acts like a real IoT device and sends telemetry to the backend API.
+A Python simulator is also included for local development and device-style telemetry ingestion.
 
 Supported scenarios:
 
@@ -158,17 +187,34 @@ Dashboard metrics include:
 Each device has a detailed monitoring page with:
 
 - Device configuration
+- Browser-based demo simulation
 - Active alerts
 - Risk prediction
 - AI summary
-- Current telemetry metrics
+- Latest telemetry snapshot
+- Historical telemetry filters
 - Telemetry charts
 - Recent telemetry table
 - Resolved alert history
 
-### Telemetry Charts
+### Latest Telemetry Snapshot
 
-The frontend displays recent telemetry trends using Recharts.
+The device detail page separates the latest device condition from historical telemetry trends.
+
+The latest telemetry snapshot shows the most recent reading for:
+
+- Temperature
+- Humidity
+- Battery level
+- Generated power
+- Cooling load
+- Current device status
+
+This section is not affected by historical telemetry filters.
+
+### Historical Telemetry Trends
+
+The frontend displays historical telemetry trends using Recharts.
 
 Current charts include:
 
@@ -178,7 +224,14 @@ Current charts include:
 - Generated power
 - Cooling load
 
-The current MVP displays recent telemetry readings. Time-range filters such as last 1 hour, 6 hours, 24 hours, and 7 days are planned for a future version.
+Users can filter historical telemetry by:
+
+- Last 1 hour
+- Last 6 hours
+- Last 24 hours
+- Last 7 days
+
+The historical range controls the charts and the recent telemetry table. The latest telemetry snapshot always shows the most recent device reading.
 
 ### Alert System
 
@@ -277,6 +330,8 @@ The frontend includes:
 - Reusable UI components
 - Mobile-friendly card layouts
 - Horizontally scrollable tables on smaller screens
+- Clear separation between latest telemetry and historical telemetry
+- Browser-based demo workflow for portfolio testing
 
 ---
 
@@ -301,11 +356,11 @@ The frontend includes:
 - Alembic
 - JWT authentication
 
-### Simulator
+### Simulation
 
-- Python
-- Requests
-- Scenario-based telemetry generation
+- Browser-based demo simulation
+- Python scenario-based simulator
+- Scenario-based synthetic telemetry generation
 
 ### Development Tools
 
@@ -319,6 +374,19 @@ The frontend includes:
 ## Architecture Overview
 
 ```text
+Browser Demo Simulation
+        |
+        v
+React + TypeScript Frontend
+        |
+        v
+FastAPI Backend
+        |
+        v
+PostgreSQL Database
+```
+
+```text
 Python Device Simulator
         |
         v
@@ -328,7 +396,7 @@ FastAPI Backend
 PostgreSQL Database
         |
         v
-React + TypeScript Dashboard
+React + TypeScript Frontend
 ```
 
 ### System Flow
@@ -336,14 +404,15 @@ React + TypeScript Dashboard
 1. A user registers and logs in.
 2. The user creates a cold-storage device.
 3. The backend generates a public device UID and device API key.
-4. The Python simulator sends telemetry using the device UID and API key.
-5. The FastAPI backend validates the API key.
-6. Telemetry is stored in PostgreSQL.
-7. Alert rules evaluate incoming telemetry.
-8. The offline monitor checks for missing telemetry.
-9. The prediction engine calculates future risk.
-10. The AI summary engine generates plain-English operational summaries.
-11. The React dashboard displays devices, telemetry, alerts, predictions, and summaries.
+4. Telemetry can be generated in two ways:
+   - From the browser demo simulation feature
+   - From the Python simulator using the device UID and device API key
+5. The FastAPI backend stores telemetry in PostgreSQL.
+6. Alert rules evaluate incoming telemetry.
+7. The offline monitor checks for missing telemetry.
+8. The prediction engine calculates future risk.
+9. The AI summary engine generates plain-English operational summaries.
+10. The React dashboard displays devices, telemetry, alerts, predictions, and summaries.
 
 ---
 
@@ -428,9 +497,12 @@ Main fields:
 - battery_drain_rate_per_hour
 - battery_threshold
 - estimated_hours_to_battery_threshold
+- battery_message
 - temperature_current
 - temperature_change_rate_per_hour
 - estimated_hours_to_temperature_threshold
+- temperature_threshold_direction
+- temperature_message
 - generated_power_current
 - cooling_load_current
 - power_to_cooling_ratio
@@ -493,6 +565,44 @@ DELETE /devices/{device_id}
 POST /telemetry
 GET /devices/{device_uid}/telemetry
 GET /devices/{device_uid}/telemetry/latest
+```
+
+Telemetry history supports optional query parameters:
+
+```http
+GET /devices/{device_uid}/telemetry?range=1h
+GET /devices/{device_uid}/telemetry?range=6h
+GET /devices/{device_uid}/telemetry?range=24h
+GET /devices/{device_uid}/telemetry?range=7d
+GET /devices/{device_uid}/telemetry?range=24h&limit=1000
+```
+
+### Demo Simulations
+
+```http
+POST /devices/{device_uid}/simulations/run
+```
+
+Example request:
+
+```json
+{
+  "scenario": "temperature_rise",
+  "readingCount": 40,
+  "timeRange": "6h"
+}
+```
+
+Example response:
+
+```json
+{
+  "deviceUid": "dev_example_uid",
+  "scenario": "temperature_rise",
+  "readingCount": 40,
+  "timeRange": "6h",
+  "message": "Generated 40 demo telemetry readings."
+}
 ```
 
 ### Alerts
@@ -638,7 +748,34 @@ http://localhost:5173
 
 ---
 
-### 7. Run the simulator
+## Demo Workflow
+
+After the backend and frontend are running:
+
+1. Register or log in.
+2. Create a new device.
+3. Open the device detail page.
+4. Use the Demo simulation card to generate telemetry.
+5. Select a scenario such as Temperature rise or Battery drain.
+6. Choose a time range such as 1h, 6h, 24h, or 7d.
+7. Generate demo telemetry.
+8. Review:
+   - Latest telemetry snapshot
+   - Historical telemetry charts
+   - Active alerts
+   - Risk prediction
+   - AI-style operational summary
+   - Dashboard and alerts page
+
+This workflow allows the project to be tested without running the Python simulator locally.
+
+---
+
+## Optional: Run the Python Simulator
+
+The browser-based demo simulation is the easiest way to test the project.
+
+For local development, you can also run the Python simulator.
 
 Open a new terminal:
 
@@ -733,7 +870,9 @@ Implemented:
 - Backend API with authentication
 - PostgreSQL database models and migrations
 - Device CRUD and secure telemetry ingestion
+- Browser-based demo simulation
 - Python scenario-based simulator
+- Historical telemetry range filters
 - Telemetry charts
 - Alert generation and resolution
 - Offline device monitoring
@@ -746,7 +885,6 @@ Implemented:
 Not yet implemented:
 
 - Production deployment
-- Historical chart time filters
 - Risk level trend chart
 - Advanced anomaly detection using rolling averages or Z-score logic
 - Real OpenAI-powered summary enhancement
@@ -758,12 +896,10 @@ Not yet implemented:
 
 ### Short-Term Improvements
 
-- Add historical chart filters:
-  - Last 1 hour
-  - Last 6 hours
-  - Last 24 hours
-  - Last 7 days
-- Add risk level trend chart over time
+- Deploy the production database, backend, and frontend
+- Add a live demo URL to the README
+- Add a short demo video
+- Add a risk level trend chart over time
 - Improve dashboard summary cards with prediction context
 - Add pagination or filtering for telemetry history
 - Add CSV export for telemetry and alerts
