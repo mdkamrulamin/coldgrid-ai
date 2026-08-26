@@ -22,6 +22,9 @@ import type { Prediction } from "../types/prediction"
 import DeviceAISummaryCard from "../components/devices/DeviceAISummaryCard"
 import { generateDeviceAISummary, getLatestDeviceAISummary } from "../services/aiSummaryService"
 import type { AISummary } from "../types/aiSummary"
+import DeviceSimulationCard from "../components/devices/DeviceSimulationCard"
+import { runDeviceSimulation } from "../services/simulationService"
+import type { SimulationRunRequest } from "../types/simulation"
 import DeviceDetailSkeleton from "../components/devices/DeviceDetailSkeleton"
 import EmptyState from "../components/ui/EmptyState"
 import PageError from "../components/ui/PageError"
@@ -49,6 +52,11 @@ function DeviceDetailPage() {
     const [isAiSummaryLoading, setIsAiSummaryLoading] = useState(false)
     const [isGeneratingAiSummary, setIsGeneratingAiSummary] = useState(false)
     const [aiSummaryErrorMessage, setAiSummaryErrorMessage] = useState<string | null>(null)
+
+    const [refreshKey, setRefreshKey] = useState(0)
+    const [isRunningSimulation, setIsRunningSimulation] = useState(false)
+    const [simulationMessage, setSimulationMessage] = useState<string | null>(null)
+    const [simulationErrorMessage, setSimulationErrorMessage] = useState<string | null>(null)
 
     useEffect(() => {
         async function loadDeviceDetails(options = { showPredictionLoader: false, showAiSummaryLoader: false }) {
@@ -143,7 +151,7 @@ function DeviceDetailPage() {
             window.clearInterval(intervalId)
         }
 
-    }, [deviceId, telemetryRange, token])
+    }, [deviceId, refreshKey, telemetryRange, token])
 
     const latestRangeTelemetry = telemetry[0] ?? null //Return newest readings first.
     const recentTelemetry = telemetry.slice(0, 10) //Show latest 10 readings in the table.
@@ -249,6 +257,34 @@ function DeviceDetailPage() {
         }
     }
 
+    async function handleRunSimulation(simulationData: SimulationRunRequest) {
+        if (!token || !device) {
+            return
+        }
+        try {
+            setIsRunningSimulation(true)
+            setSimulationMessage(null)
+            setSimulationErrorMessage(null)
+            setErrorMessage(null)
+
+            const response = await runDeviceSimulation(device.deviceId, token, simulationData)
+
+            setSimulationMessage(response.message)
+
+            // After simulation, show the same historical range that was generated.
+            if (telemetryRange !== simulationData.timeRange) {
+                setTelemetryRange(simulationData.timeRange)
+            } else {
+                setRefreshKey((currentValue) => currentValue + 1)
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unable to run demo simulation.'
+            setSimulationErrorMessage(message)
+        } finally {
+            setIsRunningSimulation(false)
+        }
+    }
+
 
     return (
         <PageLayout>
@@ -318,6 +354,14 @@ function DeviceDetailPage() {
                                 </div>
                             </dl>
                         </Card>
+
+                        <DeviceSimulationCard
+                            isRunning={isRunningSimulation}
+                            successMessage={simulationMessage}
+                            errorMessage={simulationErrorMessage}
+                            onRunSimulation={handleRunSimulation}
+                        />
+
                         <Card>
                             <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                                 <div>
