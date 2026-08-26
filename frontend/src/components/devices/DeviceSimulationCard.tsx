@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { type ComponentProps, useState } from "react"
 
 import Button from "../ui/Button"
 import Card from "../ui/Card"
@@ -75,7 +75,7 @@ function DeviceSimulationCard({
     const [readingCount, setReadingCount] = useState(40)
     const selectedScenario = scenarioOptions.find((option) => option.value === scenario)
 
-    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const handleSubmit: ComponentProps<'form'>['onSubmit'] = async (event) => {
         event.preventDefault()
 
         await onRunSimulation({
