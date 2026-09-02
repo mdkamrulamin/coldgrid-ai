@@ -40,7 +40,7 @@ def calculate_reading_timestamp(
 
 def generate_demo_values(scenario: SimulationScenario, index: int, reading_count: int) -> dict[str, float | str]:
     """
-    Generate one synthetic telemetry reading. The values are intentionally simple and predictable so the it is easy to understand.
+    Generate one synthetic telemetry reading. The values are intentionally simple and predictable so the demo is easy to understand.
     """
     progress = index / max(reading_count - 1, 1)
     temperature = 4.0
@@ -103,7 +103,7 @@ def delete_existing_telemetry_in_window(db: Session, device: Device, start_time:
             Telemetry.device_id == device.id,
             Telemetry.timestamp >= start_time,
             Telemetry.timestamp <= end_time,
-        ). delete(synchronize_session=False)
+        ).delete(synchronize_session=False)
     )
     db.flush()
     
@@ -119,7 +119,7 @@ def resolve_active_alerts_for_demo_reset(db: Session, device: Device) -> None:
         ).update(
             {
                 "status": "resolved",
-                "resolved_at": utc_now()
+                "resolved_at": utc_now(),
             },
             synchronize_session=False,
         )
@@ -134,7 +134,7 @@ def run_demo_simulation(
     time_range: SimulationTimeRange,
 ) -> int:
     """
-    Generate demo telemetry for the device in question. Alert rules are evaluated after each generated reading so the it looks real.
+    Generate demo telemetry for the selected device. Alert rules are evaluated after each generated reading so the demo behaves like real telemetry ingestion.
     """
     end_time = utc_now()
     start_time = end_time - TIME_RANGE_TO_DELTA[time_range]
