@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models.device import Device
 from app.models.telemetry import Telemetry
+from app.models.alert import Alert
 from app.schemas.simulation import SimulationScenario, SimulationTimeRange
 from app.services.alert_service import evaluate_telemetry_alert_rules
 
@@ -91,6 +92,39 @@ def generate_demo_values(scenario: SimulationScenario, index: int, reading_count
         "wind_speed": round(wind_speed, 2),
         "status": status,
     }
+    
+def delete_existing_telemetry_in_window(db: Session, device: Device, start_time: datetime, end_time: datetime) -> None:
+    """
+    Remove existing telemetry in the selected demo simulation window. This prevents multiple demo runs from being inserted into the same time range
+    and making the charts look mixed or duplicated.
+    """
+    (
+        db.query(Telemetry).filter(
+            Telemetry.device_id == device.id,
+            Telemetry.timestamp >= start_time,
+            Telemetry.timestamp <= end_time,
+        ). delete(synchronize_session=False)
+    )
+    db.flush()
+    
+def resolve_active_alerts_for_demo_reset(db: Session, device: Device) -> None:
+    """
+    Resolve active alerts before a fresh demo run. This keeps the demo clean when switching from one scenario to another.
+    Resolved alert history is still preserved.
+    """
+    (
+        db.query(Alert).filter(
+            Alert.device_id == device.id,
+            Alert.status == "active"
+        ).update(
+            {
+                "status": "resolved",
+                "resolved_at": utc_now()
+            },
+            synchronize_session=False,
+        )
+    )
+    db.flush()
 
 def run_demo_simulation(
     db: Session,
@@ -104,9 +138,19 @@ def run_demo_simulation(
     """
     end_time = utc_now()
     start_time = end_time - TIME_RANGE_TO_DELTA[time_range]
+    
+    # A browser demo run should behave like a fresh scenario for the selected range. Otherwise repeated runs are inserted into the same historical window.
+    delete_existing_telemetry_in_window(db=db, device=device, start_time=start_time, end_time=end_time)
+    
+    # Resolve existing active alerts so the new simulation creates a clean current state.
+    resolve_active_alerts_for_demo_reset(db=db, device=device)
+    
+    # Use the most recent telemetry before the selected window as previous context.
     previous_telemetry = (
-        db.query(Telemetry).filter(Telemetry.device_id == device.id)
-        .order_by(Telemetry.timestamp.desc()).first()
+        db.query(Telemetry).filter(
+            Telemetry.device_id == device.id,
+            Telemetry.timestamp < start_time,
+        ).order_by(Telemetry.timestamp.desc()).first()
     )
     created_count = 0
     
