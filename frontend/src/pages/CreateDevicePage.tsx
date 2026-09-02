@@ -14,10 +14,14 @@ function CreateDevicePage() {
     const { token } = useAuth()
 
     const [createdDevice, setCreatedDevice] = useState<CreateDeviceResponse | null>(null)
+    const isFormLocked = createdDevice != null
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
     async function handleCreateDevice(payload: CreateDeviceRequest) {
+        if (isFormLocked) {
+            return
+        }
         if (!token) {
             setErrorMessage('You must be logged in to create a device.')
             return
@@ -57,6 +61,7 @@ function CreateDevicePage() {
                     <DeviceForm 
                         submitLabel="Create device"
                         isSubmitting={isSubmitting}
+                        disabled={isFormLocked}
                         errorMessage={errorMessage}
                         onSubmit={handleCreateDevice}
                     />
@@ -72,6 +77,9 @@ function CreateDevicePage() {
 
                     {createdDevice ? (
                         <div className="mt-5 space-y-4">
+                            <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+                                Device created successfully. The form is now locked to prevent creating duplicate devices.
+                            </p>
                             <CopyableCodeField
                                 label="Device UID"
                                 text={createdDevice.deviceId}
@@ -85,6 +93,12 @@ function CreateDevicePage() {
                             <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
                                 Save this API key now. You will not be able to view it again.
                             </p>
+                            <Link
+                                to="/devices"
+                                className="inline-flex w-full justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700"
+                            >
+                                Back to devices
+                            </Link>
                         </div>
                     ) : (
                         <p className="mt-5 text-sm text-slate-500">

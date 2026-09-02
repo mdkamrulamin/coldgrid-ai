@@ -9,12 +9,13 @@ type DeviceFormProps = {
     initialDevice?: Device
     submitLabel: string
     isSubmitting: boolean
+    disabled?: boolean
     errorMessage: string | null
     onSubmit: (payload: CreateDeviceRequest) => Promise<void>
 }
 
 // Reusable form for both create and update a device
-function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, onSubmit, }: DeviceFormProps) {
+function DeviceForm({ initialDevice, submitLabel, isSubmitting, disabled = false, errorMessage, onSubmit, }: DeviceFormProps) {
     const [name, setName] = useState(initialDevice?.name ?? '')
     const [location, setLocation] = useState(initialDevice?.location ?? '')
     const [storageType, setStorageType] = useState(initialDevice?.storageType ?? 'Cold room')
@@ -26,6 +27,10 @@ function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, on
 
     const handleSubmit: ComponentProps<'form'>['onSubmit'] = async (event) => {
         event.preventDefault()
+
+        if (disabled || isSubmitting) {
+            return
+        }
 
         await onSubmit({
             name,
@@ -47,6 +52,7 @@ function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, on
                 type="text"
                 placeholder="Ottawa Cold Room 01"
                 value={name}
+                disabled={disabled || isSubmitting}
                 onChange={(event) => setName(event.target.value)}
                 required
             />
@@ -56,6 +62,7 @@ function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, on
                 type="text"
                 placeholder="Ottawa, Canada"
                 value={location}
+                disabled={disabled || isSubmitting}
                 onChange={(event) => setLocation(event.target.value)}
                 required
             />
@@ -65,6 +72,7 @@ function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, on
                 type="text"
                 placeholder="Cold room"
                 value={storageType}
+                disabled={disabled || isSubmitting}
                 onChange={(event) => setStorageType(event.target.value)}
                 required
             />
@@ -74,6 +82,7 @@ function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, on
                     name="minTemperature"
                     type="number"
                     value={minTemperature}
+                    disabled={disabled || isSubmitting}
                     onChange={(event) => setMinTemperature(event.target.value)}
                     required
                 />
@@ -82,6 +91,7 @@ function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, on
                     name="maxTemperature"
                     type="number"
                     value={maxTemperature}
+                    disabled={disabled || isSubmitting}
                     onChange={(event) => setMaxTemperature(event.target.value)}
                     required
                 />
@@ -90,6 +100,7 @@ function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, on
                     name="minHumidity"
                     type="number"
                     value={minHumidity}
+                    disabled={disabled || isSubmitting}
                     onChange={(event) => setMinHumidity(event.target.value)}
                     required
                 />
@@ -98,6 +109,7 @@ function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, on
                     name="maxHumidity"
                     type="number"
                     value={maxHumidity}
+                    disabled={disabled || isSubmitting}
                     onChange={(event) => setMaxHumidity(event.target.value)}
                     required
                 />
@@ -106,11 +118,12 @@ function DeviceForm({ initialDevice, submitLabel, isSubmitting, errorMessage, on
                     name="batteryThreshold"
                     type="number"
                     value={batteryThreshold}
+                    disabled={disabled || isSubmitting}
                     onChange={(event) => setBatteryThreshold(event.target.value)}
                     required
                 />
             </div>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={disabled || isSubmitting}>
                 {isSubmitting ? 'Saving...' : submitLabel}
             </Button>
         </form>
