@@ -2,19 +2,37 @@
 
 **Real-Time Renewable Cold Storage Monitoring & Prediction Platform**
 
-ColdGrid AI is a full-stack software platform for monitoring renewable-powered cold storage systems. It ingests telemetry from simulated IoT devices, tracks energy and storage conditions, detects operational risks, predicts potential failures, and generates AI-style operational summaries for decision support.
+ColdGrid AI is a full-stack software platform for monitoring renewable-powered cold storage systems. It ingests telemetry from simulated IoT devices, tracks storage and energy conditions, detects operational risks, predicts potential failures, and generates AI-style operational summaries for decision support.
 
-The MVP uses simulated devices instead of physical hardware, making it possible to build, test, and demonstrate the system without requiring sensors, batteries, turbines, or university lab equipment.
+The MVP uses simulated devices instead of physical hardware, making it possible to build, test, and demonstrate the platform without requiring sensors, batteries, turbines, or university lab equipment.
+
+---
+
+## Live Demo
+
+Frontend:
+
+```http
+https://coldgrid-ai-sigma.vercel.app
+```
+
+Backend API documentation:
+
+```http
+https://coldgrid-ai-vqwn.onrender.com/docs
+```
+
+The backend is deployed on Render's free tier, so the first request after a period of inactivity may take a little longer while the service wakes up.
 
 ---
 
 ## Project Overview
 
-Cold storage systems are important for food preservation, agriculture, healthcare, and off-grid communities. In many low-resource or renewable-powered environments, storage reliability depends on multiple changing factors such as battery level, generated power, temperature, humidity, cooling load, and device connectivity.
+Cold storage systems are important for food preservation, agriculture, healthcare, and off-grid communities. In many low-resource or renewable-powered environments, storage reliability depends on several changing factors such as battery level, generated power, temperature, humidity, cooling load, and device connectivity.
 
 ColdGrid AI acts as the software intelligence layer for these systems.
 
-It allows users to create and monitor cold-storage devices, receive telemetry, view system health, detect alerts, predict risk, and generate plain-English operational summaries.
+It allows users to create and monitor cold-storage devices, receive telemetry, view system health, detect alerts, predict operational risk, and generate plain-English summaries.
 
 The first version follows a software-first digital twin approach. Telemetry can be generated in two ways:
 
@@ -88,7 +106,7 @@ ColdGrid AI helps address these problems by providing a real-time monitoring and
 - User registration
 - User login
 - JWT-based protected routes
-- User-specific device and alert access
+- User-specific device, telemetry, alert, prediction, and summary access
 
 ### Device Onboarding
 
@@ -103,7 +121,9 @@ Users can create cold-storage devices with configuration such as:
 - Public device UID
 - Device API key for telemetry ingestion
 
-The raw device API key is shown only once during device creation. The backend stores a hashed version of the API key.
+The raw device API key is shown only once during device creation. The backend stores only a hashed version of the API key.
+
+To prevent accidental duplicate creation, the create-device form is locked after a device is successfully created. The same user is also prevented from registering another device with the same name.
 
 ### Real-Time Telemetry Ingestion
 
@@ -126,7 +146,7 @@ Telemetry ingestion uses the device UID and device API key.
 
 ColdGrid AI includes a browser-based demo simulation feature.
 
-Users can generate demo telemetry directly from the device detail page without installing Python, copying the project locally, or manually running terminal commands.
+Users can generate demo telemetry directly from the device detail page without installing Python, cloning the repository, copying device API keys, or running terminal commands.
 
 Supported browser simulation scenarios:
 
@@ -190,7 +210,7 @@ Each device has a detailed monitoring page with:
 - Browser-based demo simulation
 - Active alerts
 - Risk prediction
-- AI summary
+- AI-style operational summary
 - Latest telemetry snapshot
 - Historical telemetry filters
 - Telemetry charts
@@ -235,7 +255,7 @@ The historical range controls the charts and the recent telemetry table. The lat
 
 ### Alert System
 
-ColdGrid AI automatically generates alerts based on telemetry and device thresholds.
+ColdGrid AI automatically generates alerts based on telemetry, device thresholds, and device connectivity.
 
 Alert types include:
 
@@ -356,11 +376,23 @@ The frontend includes:
 - Alembic
 - JWT authentication
 
+### Database
+
+- PostgreSQL
+- Neon PostgreSQL for hosted production database
+- Dockerized PostgreSQL for local development
+
 ### Simulation
 
 - Browser-based demo simulation
 - Python scenario-based simulator
 - Scenario-based synthetic telemetry generation
+
+### Deployment
+
+- Frontend: Vercel
+- Backend: Render
+- Database: Neon PostgreSQL
 
 ### Development Tools
 
@@ -374,29 +406,42 @@ The frontend includes:
 ## Architecture Overview
 
 ```text
+User Browser
+    |
+    v
+Vercel Frontend
+    |
+    v
+Render FastAPI Backend
+    |
+    v
+Neon PostgreSQL Database
+```
+
+```text
 Browser Demo Simulation
-        |
-        v
-React + TypeScript Frontend
-        |
-        v
+    |
+    v
 FastAPI Backend
-        |
-        v
+    |
+    v
 PostgreSQL Database
+    |
+    v
+React + TypeScript Dashboard
 ```
 
 ```text
 Python Device Simulator
-        |
-        v
+    |
+    v
 FastAPI Backend
-        |
-        v
+    |
+    v
 PostgreSQL Database
-        |
-        v
-React + TypeScript Frontend
+    |
+    v
+React + TypeScript Dashboard
 ```
 
 ### System Flow
@@ -410,8 +455,8 @@ React + TypeScript Frontend
 5. The FastAPI backend stores telemetry in PostgreSQL.
 6. Alert rules evaluate incoming telemetry.
 7. The offline monitor checks for missing telemetry.
-8. The prediction engine calculates future risk.
-9. The AI summary engine generates plain-English operational summaries.
+8. The prediction engine calculates future operational risk.
+9. The AI-style summary engine generates plain-English operational summaries.
 10. The React dashboard displays devices, telemetry, alerts, predictions, and summaries.
 
 ---
@@ -539,6 +584,12 @@ FastAPI provides interactive API documentation at:
 /docs
 ```
 
+Production API documentation:
+
+```http
+https://coldgrid-ai-vqwn.onrender.com/docs
+```
+
 Main API groups:
 
 ### Authentication
@@ -626,6 +677,29 @@ GET /devices/{device_uid}/predictions/latest
 POST /devices/{device_uid}/ai-summary
 GET /devices/{device_uid}/ai-summary/latest
 ```
+
+---
+
+## Demo Workflow
+
+The live demo can be tested from the browser without running the Python simulator locally.
+
+1. Open the frontend demo.
+2. Register or log in.
+3. Create a new device.
+4. Save the device UID and API key if you want to test the Python simulator later.
+5. Open the device detail page.
+6. Use the Demo simulation card to generate telemetry.
+7. Select a scenario such as Temperature rise, Battery drain, Cooling failure, or Sensor failure.
+8. Choose a time range such as 1h, 6h, 24h, or 7d.
+9. Generate demo telemetry.
+10. Review:
+    - Latest telemetry snapshot
+    - Historical telemetry charts
+    - Active alerts
+    - Risk prediction
+    - AI-style operational summary
+    - Dashboard and alerts page
 
 ---
 
@@ -748,29 +822,6 @@ http://localhost:5173
 
 ---
 
-## Demo Workflow
-
-After the backend and frontend are running:
-
-1. Register or log in.
-2. Create a new device.
-3. Open the device detail page.
-4. Use the Demo simulation card to generate telemetry.
-5. Select a scenario such as Temperature rise or Battery drain.
-6. Choose a time range such as 1h, 6h, 24h, or 7d.
-7. Generate demo telemetry.
-8. Review:
-   - Latest telemetry snapshot
-   - Historical telemetry charts
-   - Active alerts
-   - Risk prediction
-   - AI-style operational summary
-   - Dashboard and alerts page
-
-This workflow allows the project to be tested without running the Python simulator locally.
-
----
-
 ## Optional: Run the Python Simulator
 
 The browser-based demo simulation is the easiest way to test the project.
@@ -831,6 +882,45 @@ python simulator.py --device dev_your_device_uid --api-key YOUR_DEVICE_API_KEY -
 
 ---
 
+## Production Deployment
+
+ColdGrid AI is deployed using:
+
+- Vercel for the React frontend
+- Render for the FastAPI backend
+- Neon PostgreSQL for the production database
+
+### Backend deployment notes
+
+The backend should run database migrations before starting the production server.
+
+Example Render settings:
+
+```bash
+# Build command
+pip install -r requirements.txt
+
+# Pre-deploy command
+alembic upgrade head
+
+# Start command
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+Backend environment variables should be configured in Render.
+
+### Frontend deployment notes
+
+The frontend is a Vite app. The production backend URL should be configured in Vercel:
+
+```env
+VITE_API_BASE_URL=https://coldgrid-ai-vqwn.onrender.com
+```
+
+Frontend environment variables should be configured in Vercel.
+
+---
+
 ## Project Structure
 
 ```text
@@ -844,7 +934,10 @@ coldgrid-ai/
 │   │   ├── schemas/
 │   │   └── services/
 │   └── alembic/
+├── docs/
+│   └── screenshots/
 ├── frontend/
+│   ├── public/
 │   └── src/
 │       ├── components/
 │       ├── lib/
@@ -854,8 +947,8 @@ coldgrid-ai/
 ├── simulator/
 │   ├── scenarios/
 │   └── simulator.py
-├── docs/
-│   └── screenshots/
+├── .env.example
+├── .nvmrc
 └── README.md
 ```
 
@@ -863,16 +956,20 @@ coldgrid-ai/
 
 ## Current Status
 
-ColdGrid AI is currently a working local MVP.
+ColdGrid AI is currently a deployed portfolio MVP.
 
 Implemented:
 
+- Production deployment
 - Backend API with authentication
 - PostgreSQL database models and migrations
 - Device CRUD and secure telemetry ingestion
+- Duplicate device-name prevention per user
+- Device creation form lock after successful creation
 - Browser-based demo simulation
 - Python scenario-based simulator
 - Historical telemetry range filters
+- Latest telemetry snapshot
 - Telemetry charts
 - Alert generation and resolution
 - Offline device monitoring
@@ -884,7 +981,7 @@ Implemented:
 
 Not yet implemented:
 
-- Production deployment
+- Demo video
 - Risk level trend chart
 - Advanced anomaly detection using rolling averages or Z-score logic
 - Real OpenAI-powered summary enhancement
@@ -896,12 +993,10 @@ Not yet implemented:
 
 ### Short-Term Improvements
 
-- Deploy the production database, backend, and frontend
-- Add a live demo URL to the README
 - Add a short demo video
 - Add a risk level trend chart over time
 - Improve dashboard summary cards with prediction context
-- Add pagination or filtering for telemetry history
+- Add pagination for telemetry history
 - Add CSV export for telemetry and alerts
 - Add more polished README demo screenshots or GIFs
 
