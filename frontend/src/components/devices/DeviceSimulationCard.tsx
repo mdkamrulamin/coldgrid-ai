@@ -93,7 +93,7 @@ function DeviceSimulationCard({
                         Demo simulation
                     </h2>
                     <p className="mt-1 text-sm text-slate-600">
-                        Generate demo telemetry directly from the browser without running the Python simulator locally.
+                        Generate a fresh demo scenario for the selected time range. Existing telemetry in that range will be replaced.
                     </p>
                 </div>
                 <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
