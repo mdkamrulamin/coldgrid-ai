@@ -24,6 +24,15 @@ https://coldgrid-ai-vqwn.onrender.com/docs
 
 The backend is deployed on Render's free tier, so the first request after a period of inactivity may take a little longer while the service wakes up.
 
+## Project Walkthrough Video
+
+Watch the full project walkthrough:
+
+The video demonstrates the complete user flow, including authentication, device onboarding, browser-based telemetry simulation, historical charts, alert detection, risk prediction, AI-style summaries, and the deployed production stack.
+
+```http
+https://youtu.be/_ikrMBfv6vY
+```
 ---
 
 ## Project Overview
